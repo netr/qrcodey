@@ -1,3 +1,4 @@
+from copy import copy
 from functools import cache
 from typing import Dict, List
 
@@ -9,27 +10,25 @@ class GaloisField:
     @staticmethod
     @cache
     def get_exponents_table() -> Dict[int, int]:
+        exps = {0: 1}
         value = 1
-        exps: Dict[int, int] = {i: 0 for i in range(0, 255)}
-        for exp in range(1, 256):
-            value = ((value << 1) ^ 285) if value > 127 else value << 1
-            exps[exp % 255] = value
+        for exp in range(1, 255):
+            value = (value << 1) ^ 285 if value & 0x80 else value << 1
+            exps[exp] = value
         return exps
 
     @staticmethod
     @cache
     def get_log_table() -> Dict[int, int]:
-        value = 1
-        log: Dict[int, int] = {i: 0 for i in range(0, 255)}
-        for exp in range(1, 256):
-            value = ((value << 1) ^ 285) if value > 127 else value << 1
-            log[value] = exp % 255
-        return log
+        exps = GaloisField.get_exponents_table()
+        return {value: exp for exp, value in exps.items()}
 
     @staticmethod
     def multiply(a: int, b: int) -> int:
+        if a == 0 or b == 0:
+            return 0
         exps, log = GaloisField.get_exponents_table(), GaloisField.get_log_table()
-        return exps[(log[a] + log[b])] if a and b else 0
+        return exps[(log[a] + log[b]) % 255]
 
     @staticmethod
     def divide(a: int, b: int) -> int:
@@ -72,99 +71,58 @@ def test_multiply_gf():
     assert GaloisField.multiply(76, 43) == 251
 
 
-class Polynomial:
-    def __init__(self, coefficients: list[int]):
-        self.coefficients = coefficients
-
-    def __eq__(self, other: 'Polynomial'):
-        return self.coefficients == other.coefficients
-
-    def __getitem__(self, index):
-        return self.coefficients[index]
-
-    def __iter__(self):
-        return iter(self.coefficients)
-
-    def __len__(self):
-        return len(self.coefficients)
-
-    def __mul__(self, other: 'Polynomial') -> 'Polynomial':
-        # Initialize the result coefficient array
-        degrees = len(self.coefficients) + len(other.coefficients) - 1
-        coeffs = [0] * degrees
-
-        # Perform polynomial multiplication
-        for i, cur_poly in enumerate(self.coefficients):
-            for j, other_poly in enumerate(other.coefficients):
-                coeffs[i + j] ^= GaloisField.multiply(cur_poly, other_poly)
-
-        return Polynomial(coeffs)
-
-
-def test_polynomial_multiplication():
-    # Assuming Polynomial takes a list of coefficients from highest to lowest degree
-    # and implements __eq__ for comparison
-
-    # Basic Multiplication
-    assert Polynomial([1, 1]) * Polynomial([1, 2]) == Polynomial([1, 3, 2])
-
-    # Multiplication with Zero
-    assert Polynomial([1, 0, 4, 4]) * Polynomial([0]) == Polynomial([0, 0, 0, 0])
-
-    # Multiplication with One
-    assert Polynomial([3, 2, 1]) * Polynomial([1]) == Polynomial([3, 2, 1])
-
-    # Different Lengths
-    # assert Polynomial([1, 1, 1, 0]) * (Polynomial([1, 1])) == Polynomial([1, 2, 2, 1, 0])
-
-    # Coefficients > 255
-    # You need to adjust the coefficients according to your Galois Field implementation
-    # Example coefficients here are placeholders
-    # assert Polynomial([300, 200]).multiply(Polynomial([2])) == Polynomial(
-    #     [GaloisField.some_reduction(600), GaloisField.some_reduction(400)])
-
-    # Complex Polynomials
-    # assert Polynomial([1, 0, 1, 1]) * (Polynomial([1, 0, 1])) == Polynomial([1, 0, 2, 1, 1])
-
-
 class GeneratorPolynomial:
     def __init__(self, degree: int):
-        self.polynomial = self.create(degree)
+        if degree not in GENERATOR_POLYNOMIALS:
+            raise ValueError(f"No generator polynomial available for degree {degree}")
+        self.polynomial = GENERATOR_POLYNOMIALS[degree]
 
     @staticmethod
     def create(degree: int) -> List[int]:
         return GENERATOR_POLYNOMIALS[degree]
 
-    def __truediv__(self, other: List[int]) -> List[int]:
-        for step in range(16):
-            start = self.polynomial[:]
-            lead_term = other[0]
-            lead_term_log = GaloisField.get_log(lead_term)
-            # print("step", step + 1, "lead_term", lead_term, "log", GaloisField.get_log(lead_term))
-            for i in range(len(start)):
-                start[i] += lead_term_log
-                if start[i] >= 255:
-                    start[i] %= 255
+    def __truediv__(self, message: List[int]) -> List[int]:
+        return self.divide(message)
 
-            # print("start", start)
+    def divide(self, message: List[int]) -> List[int]:
+        """
+        Divides the generator polynomial by the message polynomial
+        in Galois Field arithmetic to get the remainder, which is
+        the error correction code.
 
-            next = [0] * len(start)
-            for i in range(len(start)):
-                next[i] = GaloisField.get_exp(start[i])
-            # print("next", next, "--->", len(other), len(next))
-            if len(other) < len(next):
-                other.extend([0] * (len(next) - len(other)))
-            for i in range(len(other)):
-                if i < len(next):
-                    other[i] ^= next[i]
+        :param message: The message polynomial coefficients
+        :return: The remainder polynomial coefficients (error correction code)
+        """
+        steps = len(message)
+        for step in range(steps):
+            gen_polys = copy(self.polynomial)
+            lead_term_log = GaloisField.get_log(message[0])
+
+            # add the exponents and the alphas together. if > 255, then modulo 255
+            for i in range(len(gen_polys)):
+                gen_polys[i] += lead_term_log
+                if gen_polys[i] >= 255:
+                    gen_polys[i] %= 255
+
+            # convert all the generator polynomials into their exponent form
+            for i in range(len(gen_polys)):
+                gen_polys[i] = GaloisField.get_exp(gen_polys[i])
+
+            # extend message polynomial to the correct error correction code length if req.
+            if len(message) < len(gen_polys):
+                message.extend([0] * (len(gen_polys) - len(message)))
+
+            # xor the ith generator polynomial and message polynomial values
+            for i in range(len(message)):
+                if i < len(gen_polys):
+                    message[i] ^= gen_polys[i]
                 else:
-                    other[i] ^= 0
-            #
-            # print("other", other)
-            other = other[1:]
-            print("")
+                    message[i] ^= 0
 
-        return other
+            # trim the leading 0
+            message = message[1:]
+
+        return message
 
 
 def test_generator_polynomial():
@@ -180,4 +138,7 @@ def test_divide_generator_with_message():
     data = "0010000001011011000010110111100011010001011100101101110001001101" \
            "0100001101000000111011000001000111101100000100011110110000010001"
     ans = GeneratorPolynomial(10) / AlphanumericEncoder.get_8bit_binary_numbers(data)
+    assert ans == expected
+
+    ans = GeneratorPolynomial(10).divide(AlphanumericEncoder.get_8bit_binary_numbers(data))
     assert ans == expected
