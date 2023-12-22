@@ -1,14 +1,4 @@
-import pytest
-
-from encoder import get_module_size_from_version, InvalidVersionNumber, AlphanumericEncoder, AlphanumericPair
-
-
-def test_get_module_size_from_version():
-    assert get_module_size_from_version(1) == 21
-    assert get_module_size_from_version(40) == 177
-
-    with pytest.raises(InvalidVersionNumber) as ex:
-        get_module_size_from_version(0)
+from encoder import AlphanumericEncoder, AlphanumericPair
 
 
 def test_alphanumeric_encoder_encode():

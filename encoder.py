@@ -21,30 +21,6 @@ class ModeIndicatorSize(Enum):
     ALPHANUMERIC = 9
 
 
-class InvalidVersionNumber(Exception):
-    """Version number must be between 1 and 40
-
-    Attributes:
-        version -- version number given
-    """
-    pass
-
-
-def get_module_size_from_version(version: int) -> int:
-    """
-    There are 40 versions of QR codes (from Version 1 (21 × 21 modules) to Version 40 (177 × 177 modules)).
-    Each version has a different module configuration for storing different amounts of data.
-    Each increment in version number increases the number of modules by 4 per side.
-    More: https://tritonstore.com.au/qr-code-size/
-    :param version: Version number between 1-40
-    :return: Number of modules to be represented by a nxn grid
-    """
-    if version <= 0 or version > 40:
-        raise InvalidVersionNumber(version)
-
-    return 4 * (version - 1) + 21
-
-
 class InvalidAlphanumericCharacter(Exception):
     """Character is not valid
 
