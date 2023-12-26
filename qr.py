@@ -79,8 +79,8 @@ class QrCode:
     MODULES_INCREMENT = 4
     MIN_MODULES = 21
     FINDER_OFFSET = 7
-    WHITE_PIXEL = 1
-    BLACK_PIXEL = 2
+    WHITE_MODULE = 1
+    BLACK_MODULE = 2
 
     def __init__(self, version: int):
         self._version = version
@@ -122,15 +122,15 @@ class QrCode:
         """
         for i in range(yoffset + 0, yoffset + self.FINDER_OFFSET):
             for j in range(xoffset + 0, xoffset + self.FINDER_OFFSET):
-                self.matrix[i][j] = self.BLACK_PIXEL
+                self.matrix[i][j] = self.BLACK_MODULE
 
         for i in range(yoffset + 1, yoffset + (self.FINDER_OFFSET - 1)):
             for j in range(xoffset + 1, xoffset + (self.FINDER_OFFSET - 1)):
-                self.matrix[i][j] = self.WHITE_PIXEL
+                self.matrix[i][j] = self.WHITE_MODULE
 
         for i in range(yoffset + 2, yoffset + (self.FINDER_OFFSET - 2)):
             for j in range(xoffset + 2, xoffset + (self.FINDER_OFFSET - 2)):
-                self.matrix[i][j] = self.BLACK_PIXEL
+                self.matrix[i][j] = self.BLACK_MODULE
 
     def add_separators(self):
         self.add_horiz_separators()
@@ -139,14 +139,14 @@ class QrCode:
     def add_horiz_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
             self.matrix[self.FINDER_OFFSET][i] = 1
-            self.matrix[self.FINDER_OFFSET][len(self.matrix[0]) - i - 1] = self.WHITE_PIXEL
-            self.matrix[len(self.matrix) - (self.FINDER_OFFSET + 1)][i] = self.WHITE_PIXEL
+            self.matrix[self.FINDER_OFFSET][len(self.matrix[0]) - i - 1] = self.WHITE_MODULE
+            self.matrix[len(self.matrix) - (self.FINDER_OFFSET + 1)][i] = self.WHITE_MODULE
 
     def add_vertical_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
             self.matrix[i][self.FINDER_OFFSET] = 1
-            self.matrix[i][len(self.matrix[0]) - (self.FINDER_OFFSET + 1)] = self.WHITE_PIXEL
-            self.matrix[len(self.matrix[0]) - i - 1][self.FINDER_OFFSET] = self.WHITE_PIXEL
+            self.matrix[i][len(self.matrix[0]) - (self.FINDER_OFFSET + 1)] = self.WHITE_MODULE
+            self.matrix[len(self.matrix[0]) - i - 1][self.FINDER_OFFSET] = self.WHITE_MODULE
 
     def calculate_top_right(self) -> [int, int]:
         return [(((self._version - 1) * self.MODULES_INCREMENT) + self.MIN_MODULES) - self.FINDER_OFFSET, 0]
@@ -167,13 +167,13 @@ class QrCode:
             self.matrix[x][y] = 2
             # draw white in a 'circle' around the center
             for dx, dy in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
-                self.matrix[x + dx][y + dy] = self.WHITE_PIXEL
+                self.matrix[x + dx][y + dy] = self.WHITE_MODULE
             # draw the outer most, horizontal black rows
             for dx, dy in [(-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2), (2, -2), (2, -1), (2, 0), (2, 1), (2, 2)]:
-                self.matrix[x + dx][y + dy] = self.BLACK_PIXEL
+                self.matrix[x + dx][y + dy] = self.BLACK_MODULE
             # draw the outer most, vertical black rows
             for dx, dy in [(-1, -2), (0, -2), (1, -2), (-1, 2), (0, 2), (1, 2)]:
-                self.matrix[x + dx][y + dy] = self.BLACK_PIXEL
+                self.matrix[x + dx][y + dy] = self.BLACK_MODULE
 
     def get_alignment_center_points(self) -> List[Tuple[int, int]]:
         """
@@ -213,3 +213,18 @@ class QrCode:
             res.append((x, y))
 
         return res
+
+    def add_timing_patterns(self):
+        """
+        The timing patterns are two lines, one horizontal and one vertical, of alternating dark and light modules.
+        The horizontal timing pattern is placed on the 6th row of the QR code between the separators. The vertical
+        timing pattern is placed on the 6th column of the QR code between the separators. The timing patterns always
+        start and end with a dark module.
+        """
+        # draw vertical timing pattern
+        for r in range(self.FINDER_OFFSET + 1, len(self.matrix) - self.FINDER_OFFSET - 1):
+            self.matrix[r][self.FINDER_OFFSET - 1] = self.BLACK_MODULE if r % 2 == 0 else self.WHITE_MODULE
+
+        # draw horizontal timing pattern
+        for c in range(self.FINDER_OFFSET + 1, len(self.matrix[0]) - self.FINDER_OFFSET - 1):
+            self.matrix[self.FINDER_OFFSET - 1][c] = self.BLACK_MODULE if c % 2 == 0 else self.WHITE_MODULE
