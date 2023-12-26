@@ -79,6 +79,8 @@ class QrCode:
     MODULES_INCREMENT = 4
     MIN_MODULES = 21
     FINDER_OFFSET = 7
+    WHITE_PIXEL = 1
+    BLACK_PIXEL = 2
 
     def __init__(self, version: int):
         self._version = version
@@ -120,15 +122,15 @@ class QrCode:
         """
         for i in range(yoffset + 0, yoffset + self.FINDER_OFFSET):
             for j in range(xoffset + 0, xoffset + self.FINDER_OFFSET):
-                self.matrix[i][j] = 2
+                self.matrix[i][j] = self.BLACK_PIXEL
 
         for i in range(yoffset + 1, yoffset + (self.FINDER_OFFSET - 1)):
             for j in range(xoffset + 1, xoffset + (self.FINDER_OFFSET - 1)):
-                self.matrix[i][j] = 1
+                self.matrix[i][j] = self.WHITE_PIXEL
 
         for i in range(yoffset + 2, yoffset + (self.FINDER_OFFSET - 2)):
             for j in range(xoffset + 2, xoffset + (self.FINDER_OFFSET - 2)):
-                self.matrix[i][j] = 2
+                self.matrix[i][j] = self.BLACK_PIXEL
 
     def add_separators(self):
         self.add_horiz_separators()
@@ -137,14 +139,14 @@ class QrCode:
     def add_horiz_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
             self.matrix[self.FINDER_OFFSET][i] = 1
-            self.matrix[self.FINDER_OFFSET][len(self.matrix[0]) - i - 1] = 1
-            self.matrix[len(self.matrix) - (self.FINDER_OFFSET + 1)][i] = 1
+            self.matrix[self.FINDER_OFFSET][len(self.matrix[0]) - i - 1] = self.WHITE_PIXEL
+            self.matrix[len(self.matrix) - (self.FINDER_OFFSET + 1)][i] = self.WHITE_PIXEL
 
     def add_vertical_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
             self.matrix[i][self.FINDER_OFFSET] = 1
-            self.matrix[i][len(self.matrix[0]) - (self.FINDER_OFFSET + 1)] = 1
-            self.matrix[len(self.matrix[0]) - i - 1][self.FINDER_OFFSET] = 1
+            self.matrix[i][len(self.matrix[0]) - (self.FINDER_OFFSET + 1)] = self.WHITE_PIXEL
+            self.matrix[len(self.matrix[0]) - i - 1][self.FINDER_OFFSET] = self.WHITE_PIXEL
 
     def calculate_top_right(self) -> [int, int]:
         return [(((self._version - 1) * self.MODULES_INCREMENT) + self.MIN_MODULES) - self.FINDER_OFFSET, 0]
@@ -153,9 +155,36 @@ class QrCode:
         return [0, (((self._version - 1) * self.MODULES_INCREMENT) + self.MIN_MODULES) - self.FINDER_OFFSET]
 
     def add_alignment_patterns(self):
-        center_points = self.get_alignment_center_points()
+        """
+        Draw the alignment patterns across the entire QR Code. To avoid overlapping with finder patterns,
+        the function `get_alignment_center_points` is used. It incorporates the `_validate_alignment_points` method
+        internally to resolve this issue.
+
+        https://www.thonky.com/qr-code-tutorial/module-placement-matrix#step-3-add-the-alignment-patterns
+        """
+        points = self.get_alignment_center_points()
+        for x, y in points:
+            self.matrix[x][y] = 2
+            # draw white in a 'circle' around the center
+            for dx, dy in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                self.matrix[x + dx][y + dy] = self.WHITE_PIXEL
+            # draw the outer most, horizontal black rows
+            for dx, dy in [(-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2), (2, -2), (2, -1), (2, 0), (2, 1), (2, 2)]:
+                self.matrix[x + dx][y + dy] = self.BLACK_PIXEL
+            # draw the outer most, vertical black rows
+            for dx, dy in [(-1, -2), (0, -2), (1, -2), (-1, 2), (0, 2), (1, 2)]:
+                self.matrix[x + dx][y + dy] = self.BLACK_PIXEL
 
     def get_alignment_center_points(self) -> List[Tuple[int, int]]:
+        """
+        The locations at which the alignment patterns must be placed are defined in the `ALIGNMENT_PATTERN_LOCATIONS`
+        dictionary. The numbers are to be used as BOTH row and column coordinates.
+
+        For example, Version 2 has the numbers 6 and 18. This means that the CENTER MODULES of the alignment patterns
+        are to be placed  at (6, 6), (6, 18), (18, 6) and (18, 18).
+
+        :return: List of center alignment pixels as (x,y) cartesian points
+        """
         locations = ALIGNMENT_PATTERN_LOCATIONS[self._version]
 
         points = []
@@ -166,13 +195,20 @@ class QrCode:
         return self._validate_alignment_points(points)
 
     def _validate_alignment_points(self, points: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+        """
+        The alignment patterns must be put into the matrix AFTER the finder patterns and separators have been placed,
+        and the alignment patterns MUST NOT overlap the finder patterns or separators.
+
+        :param points: List of all alignment points for specified version
+        :return: List of valid center alignment pixels as (x,y) cartesian points
+        """
         res = []
         for x, y in points:
-            if x <= 7 and y <= 7:  # top left
+            if x <= self.FINDER_OFFSET and y <= self.FINDER_OFFSET:  # top left
                 continue
-            if x <= 7 and y >= (len(self.matrix[0]) - 7):  # top right
+            if x <= self.FINDER_OFFSET and y >= (len(self.matrix[0]) - self.FINDER_OFFSET):  # top right
                 continue
-            if x >= (len(self.matrix) - 7) and y <= 7:  # bottom left
+            if x >= (len(self.matrix) - self.FINDER_OFFSET) and y <= self.FINDER_OFFSET:  # bottom left
                 continue
             res.append((x, y))
 
