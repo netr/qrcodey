@@ -1,4 +1,7 @@
 from typing import Tuple, List
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
 
 ALIGNMENT_PATTERN_LOCATIONS = {
     2: [6, 18],  # version: [center, module row and column]
@@ -79,13 +82,13 @@ class QrCode:
     MODULES_INCREMENT = 4
     MIN_MODULES = 21
     FINDER_OFFSET = 7
-    WHITE_MODULE = 1
-    BLACK_MODULE = 2
+    WHITE_MODULE = 2
+    BLACK_MODULE = 0
 
     def __init__(self, version: int):
         self._version = version
         self._modules = self.get_module_size()
-        self.matrix = [[0] * self._modules for _ in range(self._modules)]
+        self.matrix = [[1] * self._modules for _ in range(self._modules)]
         self.add_patterns_and_separators()
 
     def get_module_size(self) -> int:
@@ -138,13 +141,13 @@ class QrCode:
 
     def add_horiz_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
-            self.matrix[self.FINDER_OFFSET][i] = 1
+            self.matrix[self.FINDER_OFFSET][i] = self.WHITE_MODULE
             self.matrix[self.FINDER_OFFSET][len(self.matrix[0]) - i - 1] = self.WHITE_MODULE
             self.matrix[len(self.matrix) - (self.FINDER_OFFSET + 1)][i] = self.WHITE_MODULE
 
     def add_vertical_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
-            self.matrix[i][self.FINDER_OFFSET] = 1
+            self.matrix[i][self.FINDER_OFFSET] = self.WHITE_MODULE
             self.matrix[i][len(self.matrix[0]) - (self.FINDER_OFFSET + 1)] = self.WHITE_MODULE
             self.matrix[len(self.matrix[0]) - i - 1][self.FINDER_OFFSET] = self.WHITE_MODULE
 
@@ -164,7 +167,7 @@ class QrCode:
         """
         points = self.get_alignment_center_points()
         for x, y in points:
-            self.matrix[x][y] = 2
+            self.matrix[x][y] = self.BLACK_MODULE
             # draw white in a 'circle' around the center
             for dx, dy in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
                 self.matrix[x + dx][y + dy] = self.WHITE_MODULE
@@ -228,3 +231,10 @@ class QrCode:
         # draw horizontal timing pattern
         for c in range(self.FINDER_OFFSET + 1, len(self.matrix[0]) - self.FINDER_OFFSET - 1):
             self.matrix[self.FINDER_OFFSET - 1][c] = self.BLACK_MODULE if c % 2 == 0 else self.WHITE_MODULE
+
+    def draw(self):
+        # Visualize the data
+        plt.imshow(np.array(self.matrix), cmap='gray', vmin=0, vmax=2)
+
+        # Display the image
+        plt.show()
