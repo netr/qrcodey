@@ -232,6 +232,10 @@ class QrCode:
         for c in range(self.FINDER_OFFSET + 1, len(self.matrix[0]) - self.FINDER_OFFSET - 1):
             self.matrix[self.FINDER_OFFSET - 1][c] = self.BLACK_MODULE if c % 2 == 0 else self.WHITE_MODULE
 
+    def add_dark_module(self):
+        r, c = ((self.MODULES_INCREMENT * self._version) + 9, 8)
+        self.matrix[r][c] = self.BLACK_MODULE
+
     def draw(self):
         # Visualize the data
         plt.imshow(np.array(self.matrix), cmap='gray', vmin=0, vmax=2)

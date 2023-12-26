@@ -134,4 +134,5 @@ def test_draw():
     qr = QrCode(version)
     qr.add_alignment_patterns()
     qr.add_timing_patterns()
+    qr.add_dark_module()
     qr.draw()
