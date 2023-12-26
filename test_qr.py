@@ -1,6 +1,6 @@
 import pytest
 
-from qr import InvalidVersionNumber, QrCode
+from qr import InvalidVersionNumber, QrCode, ALIGNMENT_PATTERN_LOCATIONS
 
 
 def test_get_module_size_from_version():
@@ -51,3 +51,11 @@ def test_calculate_finder_pattern_positions():
     qr = QrCode(32)
     assert qr.calculate_top_right() == [138, 0]
     assert qr.calculate_bottom_left() == [0, 138]
+
+
+def test_get_alignment_center_points():
+    alignments = QrCode(2).get_alignment_center_points()
+    assert alignments == [(18, 18)]
+
+    alignments = QrCode(8).get_alignment_center_points()
+    assert alignments == [(6, 24), (24, 6), (24, 24), (24, 42), (42, 24), (42, 42)]
