@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from encoder import AlphanumericEncoder
@@ -157,12 +159,12 @@ def test_apply_mask():
     qr.add_timing_patterns()
     qr.add_dark_module()
     qr.matrix = qr.apply_mask(5)
-    qr.add_format_string('H', 5)
+    qr.add_format_string(qr.matrix, 'H', 5)
 
     qr.draw()
 
 
-def test_evaluate():
+def test_penalty_evaluator_find_best_mask():
     version = 2
     qr = QrCode(version)
     qr.add_static_patterns()
@@ -176,11 +178,8 @@ def test_evaluate():
     qr.add_encoded_data(data)
     qr.add_timing_patterns()
     qr.add_dark_module()
-    qr.matrix = qr.apply_mask(0)
-    qr.add_format_string('H', 0)
-    score = evaluator.evaluate(qr.matrix)
-    print(score)
-    qr.draw()
+
+    assert qr.find_best_mask(evaluator)
 
 
 def test_penalty_evaluator_privates_i_know_its_bad():
@@ -198,7 +197,7 @@ def test_penalty_evaluator_privates_i_know_its_bad():
     qr.add_timing_patterns()
     qr.add_dark_module()
     qr.matrix = qr.apply_mask(0)
-    qr.add_format_string('H', 0)
+    qr.add_format_string(qr.matrix, 'H', 0)
     score = evaluator._evaluate_1(qr.matrix)
     assert score == 210
 
@@ -210,6 +209,9 @@ def test_penalty_evaluator_privates_i_know_its_bad():
 
     score = evaluator._evaluate_4(qr.matrix)
     assert score == 0
+
+    score = evaluator.evaluate(qr.matrix)
+    assert score == 498
 
 
 def test_apply_mask_should_error_with_invalid_number():
@@ -229,7 +231,7 @@ def test_apply_mask_should_error_with_invalid_number():
 def test_add_format_string():
     version = 2
     qr = QrCode(version)
-    qr.add_format_string('Q', 5)
+    qr.add_format_string(qr.matrix, 'Q', 5)
     # 01000011 0000011
 
     grid = [[1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],

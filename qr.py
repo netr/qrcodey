@@ -423,60 +423,45 @@ class QrCode:
     def _is_module_filled(self, r: int, c: int) -> bool:
         return self.matrix[r][c] != self.EMPTY_MODULE
 
-    def add_format_string(self, ecc: str, mask_pattern_id: int):
+    def add_format_string(self, matrix: List[List[int]], ecc: str, mask_pattern_id: int):
         fs = FORMAT_STRINGS[ecc][mask_pattern_id]
         # top-left horizontal
         for i in range(0, 9):
             if i == 6:
                 continue
             c = i if i < 6 else i - 1
-            self.matrix[8][i] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
+            matrix[8][i] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
 
         # top-right horizontal
         for i in range(0, 8):
             c = 14 - i
-            self.matrix[8][len(self.matrix[0]) - i - 1] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
+            matrix[8][len(matrix[0]) - i - 1] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
 
         # top-left vertical
         for i in range(0, 9):
             if i == 6:
                 continue
             c = 14 - i if i < 6 else 14 - i + 1
-            self.matrix[i][8] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
+            matrix[i][8] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
 
         # bottom-left vertical
         for i in range(0, 7):
-            self.matrix[len(self.matrix[0]) - i - 1][8] = self.BLACK_MODULE if fs[i] == '1' else self.WHITE_MODULE
+            matrix[len(matrix[0]) - i - 1][8] = self.BLACK_MODULE if fs[i] == '1' else self.WHITE_MODULE
 
-    def evaluate_1(self) -> int:
-        points = 0
-        for r in range(len(self.matrix)):
-            count = 1
-            for c in range(1, len(self.matrix[r])):
-                if self.matrix[r][c] == self.matrix[r][c - 1]:
-                    count += 1
-                else:
-                    count = 1
+        return matrix
 
-                if count == 5:
-                    points += 3
-                elif count > 5:
-                    points += 1
+    def find_best_mask(self, evaluator: 'PenaltyEvaluator'):
+        best_mask = -1
+        best_score = math.inf
+        for i in range(8):
+            temp_matrix = self.apply_mask(i)
+            temp_matrix = self.add_format_string(temp_matrix, 'H', i)
+            score = evaluator.evaluate(temp_matrix)
+            if score < best_score:
+                best_mask = i
+                best_score = score
 
-        for c in range(len(self.matrix[0])):
-            count = 1
-            for r in range(1, len(self.matrix)):
-                if self.matrix[r][c] == self.matrix[r - 1][c]:
-                    count += 1
-                else:
-                    count = 1
-
-                if count == 5:
-                    points += 3
-                elif count > 5:
-                    points += 1
-
-        return points
+        return best_mask
 
     def draw(self):
         # Visualize the data
@@ -542,28 +527,12 @@ class PenaltyEvaluator:
         }
 
     def evaluate(self, matrix: List[List[int]]) -> int:
-        best = 1
         score = 0
-        tmp_score = self._evaluate_1(matrix)
-        if tmp_score > score:
-            best = 1
-            score = tmp_score
-
-        tmp_score = self._evaluate_2(matrix)
-        if tmp_score > score:
-            best = 2
-            score = tmp_score
-
-        tmp_score = self._evaluate_3(matrix)
-        if tmp_score > score:
-            best = 3
-            score = tmp_score
-
-        tmp_score = self._evaluate_4(matrix)
-        if tmp_score > score:
-            best = 4
-
-        return best
+        score += self._evaluate_1(matrix)
+        score += self._evaluate_2(matrix)
+        score += self._evaluate_3(matrix)
+        score += self._evaluate_4(matrix)
+        return score
 
     @staticmethod
     def _evaluate_1(matrix: List[List[int]]) -> int:
