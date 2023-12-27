@@ -134,27 +134,29 @@ def test_add_timing_patterns():
 def test_draw():
     version = 2
     qr = QrCode(version)
+    qr.add_reserve_modules()
     qr.add_alignment_patterns()
     qr.add_timing_patterns()
     qr.add_dark_module()
 
     enc = AlphanumericEncoder.encode("HELLO WORLD")
     poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
-    data = "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly))
+    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
 
     count = 0
     rows, cols = len(qr.matrix), len(qr.matrix[0])
     for r in range(rows):
         for c in range(cols):
-            if qr.matrix[r][c] == 1:
+            if qr.matrix[r][c] != 1:
                 count += 1
 
     print("\n", count, (rows * cols), (rows * cols) - count)
     qr.add_encoded_data(data)
 
+    count = 0
     for r in range(rows):
         for c in range(cols):
-            if qr.matrix[r][c] == 1:
+            if qr.matrix[r][c] != 1:
                 count += 1
     print(count, (rows * cols), (rows * cols) - count)
 

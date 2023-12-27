@@ -215,6 +215,17 @@ class QrCode:
             for dx, dy in [(-1, -2), (0, -2), (1, -2), (-1, 2), (0, 2), (1, 2)]:
                 self.matrix[x + dx][y + dy] = self.BLACK_MODULE
 
+    def add_reserve_modules(self):
+        for i in range(0, 8):
+            self.matrix[8][i] = self.BLACK_MODULE
+            self.matrix[8][len(self.matrix[0]) - i - 1] = self.BLACK_MODULE
+
+        for i in range(0, 9):
+            self.matrix[i][8] = self.BLACK_MODULE
+
+        for i in range(0, 7):
+            self.matrix[len(self.matrix) - i - 1][8] = self.BLACK_MODULE
+
     def get_alignment_center_points(self) -> List[Tuple[int, int]]:
         """
         The locations at which the alignment patterns must be placed are defined in the `ALIGNMENT_PATTERN_LOCATIONS`
@@ -289,38 +300,43 @@ class QrCode:
             self.matrix[r][c] = pixel
 
             # iterate until we find the next available module point
-            while self.matrix[r][c] != 1:
-                # change pixel positions for next column and row
-                if order is 1:  # up
-                    if nc == -1:
-                        nr, nc = -1, 0
-                        r -= 1
-                        c += 1
+            try:
+                while self.matrix[r][c] != 1:
+                    # change pixel positions for next column and row
+                    if order is 1:  # up
+                        if nc == -1:
+                            nr, nc = -1, 0
+                            r -= 1
+                            c += 1
+                        else:
+                            nr, nc = 0, -1
+                            c -= 1
                     else:
-                        nr, nc = 0, -1
-                        c -= 1
-                else:
-                    if nc == -1:
+                        if nc == -1:
+                            nr, nc = -1, 0
+                            r += 1
+                            c += 1
+                        else:
+                            nr, nc = 0, -1
+                            c -= 1
+
+                    # check if out of bounds
+                    if r < 0:
+                        order = -1
+                        r = 0
+                        c -= 2
                         nr, nc = -1, 0
-                        r += 1
-                        c += 1
-                    else:
-                        nr, nc = 0, -1
-                        c -= 1
+                    if r >= ROWS:
+                        order = 1
+                        r = ROWS - 1
+                        c -= 2
+                        nr, nc = -1, 0
 
-                # check if out of bounds
-                if r < 0:
-                    order = -1
-                    r = 0
-                    c -= 2
-                    nr, nc = -1, 0
-                if r >= ROWS:
-                    order = 1
-                    r = ROWS - 1
-                    c -= 2
-                    nr, nc = -1, 0
-
-            vis.add((r, c))
+                vis.add((r, c))
+            except:
+                print("what?", r, c)
+                break
+            # print((r, c))
             # print("iter", r, c, i, ch, start, self.matrix[r][c])
 
         print(len(vis))
