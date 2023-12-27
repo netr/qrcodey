@@ -45,6 +45,43 @@ ALIGNMENT_PATTERN_LOCATIONS = {
     40: [6, 30, 58, 86, 114, 142, 170]
 }
 
+VERSION_TABLE = {
+    7: '000111110010010100',
+    8: '001000010110111100',
+    9: '001001101010011001',
+    10: '001010010011010011',
+    11: '001011101111110110',
+    12: '001100011101100010',
+    13: '001101100001000111',
+    14: '001110011000001101',
+    15: '001111100100101000',
+    16: '010000101101111000',
+    17: '010001010001011101',
+    18: '010010101000010111',
+    19: '010011010100110010',
+    20: '010100100110100110',
+    21: '010101011010000011',
+    22: '010110100011001001',
+    23: '010111011111101100',
+    24: '011000111011000100',
+    25: '011001000111100001',
+    26: '011010111110101011',
+    27: '011011000010001110',
+    28: '011100110000011010',
+    29: '011101001100111111',
+    30: '011110110101110101',
+    31: '011111001001010000',
+    32: '100000100111010101',
+    33: '100001011011110000',
+    34: '100010100010111010',
+    35: '100011011110011111',
+    36: '100100101100001011',
+    37: '100101010000101110',
+    38: '100110101001100100',
+    39: '100111010101000001',
+    40: '101000110001101001',
+}
+
 
 class InvalidVersionNumber(Exception):
     """
@@ -235,6 +272,59 @@ class QrCode:
     def add_dark_module(self):
         r, c = ((self.MODULES_INCREMENT * self._version) + 9, 8)
         self.matrix[r][c] = self.BLACK_MODULE
+
+    def add_encoded_data(self, encoded_string: str):
+        """
+        Start at bottom left and zig zag data into matrix
+        :param encoded_string:
+        :return:
+        """
+
+        ROWS, COLS = len(self.matrix[0]), len(self.matrix)
+        r, c = ROWS - 1, COLS - 1
+        nr, nc, order = -1, 0, 1
+        vis = set()
+        for i, ch in enumerate(encoded_string):
+            pixel = self.WHITE_MODULE if ch == '0' else self.BLACK_MODULE
+            self.matrix[r][c] = pixel
+
+            # iterate until we find the next available module point
+            while self.matrix[r][c] != 1:
+                # change pixel positions for next column and row
+                if order is 1:  # up
+                    if nc == -1:
+                        nr, nc = -1, 0
+                        r -= 1
+                        c += 1
+                    else:
+                        nr, nc = 0, -1
+                        c -= 1
+                else:
+                    if nc == -1:
+                        nr, nc = -1, 0
+                        r += 1
+                        c += 1
+                    else:
+                        nr, nc = 0, -1
+                        c -= 1
+
+                # check if out of bounds
+                if r < 0:
+                    order = -1
+                    r = 0
+                    c -= 2
+                    nr, nc = -1, 0
+                if r >= ROWS:
+                    order = 1
+                    r = ROWS - 1
+                    c -= 2
+                    nr, nc = -1, 0
+
+            vis.add((r, c))
+            # print("iter", r, c, i, ch, start, self.matrix[r][c])
+
+        print(len(vis))
+        print(vis)
 
     def draw(self):
         # Visualize the data

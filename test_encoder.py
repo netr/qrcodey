@@ -32,3 +32,8 @@ def test_get_pair_value():
     assert AlphanumericPair("H", "E").get_pair_value() == 779
     assert AlphanumericPair(":", ":").get_pair_value() == 2024
     assert AlphanumericPair("D", "").get_pair_value() == 13
+
+
+def test_get_8bit_binary_numbers_from_list():
+    expected = ["01000101", "11110010", "00010001", "10101011"]
+    assert AlphanumericEncoder.get_8bit_binary_numbers_from_list([69, 242, 17, 171]) == expected

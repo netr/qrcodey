@@ -1,5 +1,7 @@
 import pytest
 
+from encoder import AlphanumericEncoder
+from polynomial import GeneratorPolynomial
 from qr import InvalidVersionNumber, QrCode, ALIGNMENT_PATTERN_LOCATIONS
 
 
@@ -135,4 +137,25 @@ def test_draw():
     qr.add_alignment_patterns()
     qr.add_timing_patterns()
     qr.add_dark_module()
+
+    enc = AlphanumericEncoder.encode("HELLO WORLD")
+    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
+    data = "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly))
+
+    count = 0
+    rows, cols = len(qr.matrix), len(qr.matrix[0])
+    for r in range(rows):
+        for c in range(cols):
+            if qr.matrix[r][c] == 1:
+                count += 1
+
+    print("\n", count, (rows * cols), (rows * cols) - count)
+    qr.add_encoded_data(data)
+
+    for r in range(rows):
+        for c in range(cols):
+            if qr.matrix[r][c] == 1:
+                count += 1
+    print(count, (rows * cols), (rows * cols) - count)
+
     qr.draw()

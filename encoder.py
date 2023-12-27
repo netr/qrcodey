@@ -163,3 +163,10 @@ class AlphanumericEncoder:
         for i in range(0, len(encoded_string), 8):
             nums.append(int(encoded_string[i:i + 8], 2))
         return nums
+
+    @staticmethod
+    def get_8bit_binary_numbers_from_list(numbers: List[int]) -> List[str]:
+        res: List[str] = []
+        for i in range(0, len(numbers)):
+            res.append("{0:b}".format(numbers[i]).rjust(8, "0"))
+        return res

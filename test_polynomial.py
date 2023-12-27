@@ -19,3 +19,6 @@ def test_divide_generator_with_message():
 
     ans = GeneratorPolynomial(10).divide(AlphanumericEncoder.get_8bit_binary_numbers(data))
     assert ans == expected
+
+    ans = GeneratorPolynomial(28) / AlphanumericEncoder.get_8bit_binary_numbers(data)
+    assert len(ans) == 28
