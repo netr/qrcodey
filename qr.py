@@ -83,6 +83,49 @@ VERSION_TABLE = {
     40: '101000110001101001',
 }
 
+FORMAT_STRINGS = {
+    'L': {
+        0: '111011111000100',
+        1: '111001011110011',
+        2: '111110110101010',
+        3: '111100010011101',
+        4: '110011000101111',
+        5: '110001100011000',
+        6: '110110001000001',
+        7: '110100101110110',
+    },
+    'M': {
+        0: '101010000010010',
+        1: '101000100100101',
+        2: '101111001111100',
+        3: '101101101001011',
+        4: '100010111111001',
+        5: '100000011001110',
+        6: '100111110010111',
+        7: '100101010100000',
+    },
+    'Q': {
+        0: '011010101011111',
+        1: '011000001101000',
+        2: '011111100110001',
+        3: '011101000000110',
+        4: '010010010110100',
+        5: '010000110000011',
+        6: '010111011011010',
+        7: '010101111101101',
+    },
+    'H': {
+        0: '001011010001001',
+        1: '001001110111110',
+        2: '001110011100111',
+        3: '001100111010000',
+        4: '000011101100010',
+        5: '000001001010101',
+        6: '000110100001100',
+        7: '000100000111011',
+    }
+}
+
 
 class InvalidVersionNumber(Exception):
     """
@@ -378,6 +421,31 @@ class QrCode:
 
     def _is_module_filled(self, r: int, c: int) -> bool:
         return self.matrix[r][c] != self.EMPTY_MODULE
+
+    def add_format_string(self, ecc: str, mask_pattern_id: int):
+        fs = FORMAT_STRINGS[ecc][mask_pattern_id]
+        # top-left horizontal
+        for i in range(0, 9):
+            if i == 6:
+                continue
+            c = i if i < 6 else i - 1
+            self.matrix[8][i] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
+
+        # top-right horizontal
+        for i in range(0, 8):
+            c = 14 - i
+            self.matrix[8][len(self.matrix[0]) - i - 1] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
+
+        # top-left vertical
+        for i in range(0, 9):
+            if i == 6:
+                continue
+            c = 14 - i if i < 6 else 14 - i + 1
+            self.matrix[i][8] = self.BLACK_MODULE if fs[c] == '1' else self.WHITE_MODULE
+
+        # bottom-left vertical
+        for i in range(0, 7):
+            self.matrix[len(self.matrix[0]) - i - 1][8] = self.BLACK_MODULE if fs[i] == '1' else self.WHITE_MODULE
 
     def draw(self):
         # Visualize the data
