@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List
 
-from const import ECC_BLOCKS, get_required_length_of_ecc_block, Mode
+from const import get_required_length_of_ecc_block, Mode
 from util import choose_qr_version
 
 ALPHANUMERIC_CHARS: str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: "

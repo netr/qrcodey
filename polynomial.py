@@ -11,7 +11,7 @@ class GeneratorPolynomial:
             raise ValueError(f"No generator polynomial available for degree {degree}")
         self.polynomial = GENERATOR_POLYNOMIALS[degree]
 
-    def __eq__(self, other: List[int] | 'GeneratorPolynomial'):
+    def __eq__(self, other: List[int] | "GeneratorPolynomial"):
         return other == self.polynomial
 
     def __truediv__(self, message: List[int]) -> List[int]:
