@@ -416,7 +416,7 @@ class QrCode:
 
         return masked
 
-    def _is_on_veritcal_timing(self, r, c):
+    def _is_on_veritcal_timing(self, r, c) -> bool:
         if r in range(self.FINDER_OFFSET + 1, len(self.matrix) - self.FINDER_OFFSET - 1):
             return c == self.FINDER_OFFSET - 1
         return False
@@ -424,7 +424,7 @@ class QrCode:
     def _is_module_filled(self, r: int, c: int) -> bool:
         return self.matrix[r][c] != self.EMPTY_MODULE
 
-    def add_format_string(self, matrix: List[List[int]], ecc: str, mask_pattern_id: int):
+    def add_format_string(self, matrix: List[List[int]], ecc: str, mask_pattern_id: int) -> List[List[int]]:
         fs = FORMAT_STRINGS[ecc][mask_pattern_id]
         # top-left horizontal
         for i in range(0, 9):
@@ -451,7 +451,7 @@ class QrCode:
 
         return matrix
 
-    def find_best_mask(self, ecc: str):
+    def find_best_mask(self, ecc: str) -> int:
         evaluator = PenaltyEvaluator()
         best_mask = -1
         best_score = math.inf

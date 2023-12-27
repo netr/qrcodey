@@ -30,6 +30,68 @@ class InvalidAlphanumericCharacter(Exception):
     pass
 
 
+CAPACITY_TABLE = {
+    1: {"Numeric": 34, "Alphanumeric": 14},
+    2: {"Numeric": 63, "Alphanumeric": 26},
+    3: {"Numeric": 101, "Alphanumeric": 42},
+    4: {"Numeric": 149, "Alphanumeric": 62},
+    5: {"Numeric": 202, "Alphanumeric": 84},
+    6: {"Numeric": 255, "Alphanumeric": 106},
+    7: {"Numeric": 293, "Alphanumeric": 122},
+    8: {"Numeric": 365, "Alphanumeric": 152},
+    9: {"Numeric": 432, "Alphanumeric": 180},
+    10: {"Numeric": 513, "Alphanumeric": 213},
+    11: {"Numeric": 604, "Alphanumeric": 251},
+    12: {"Numeric": 691, "Alphanumeric": 287},
+    13: {"Numeric": 796, "Alphanumeric": 331},
+    14: {"Numeric": 871, "Alphanumeric": 362},
+    15: {"Numeric": 991, "Alphanumeric": 412},
+    16: {"Numeric": 1082, "Alphanumeric": 450},
+    17: {"Numeric": 1212, "Alphanumeric": 504},
+    18: {"Numeric": 1346, "Alphanumeric": 560},
+    19: {"Numeric": 1500, "Alphanumeric": 624},
+    20: {"Numeric": 1600, "Alphanumeric": 666},
+    21: {"Numeric": 1708, "Alphanumeric": 711},
+    22: {"Numeric": 1872, "Alphanumeric": 779},
+    23: {"Numeric": 2059, "Alphanumeric": 857},
+    24: {"Numeric": 2188, "Alphanumeric": 911},
+    25: {"Numeric": 2395, "Alphanumeric": 997},
+    26: {"Numeric": 2544, "Alphanumeric": 1059},
+    27: {"Numeric": 2701, "Alphanumeric": 1125},
+    28: {"Numeric": 2857, "Alphanumeric": 1190},
+    29: {"Numeric": 3035, "Alphanumeric": 1264},
+    30: {"Numeric": 3289, "Alphanumeric": 1370},
+    31: {"Numeric": 3486, "Alphanumeric": 1452},
+    32: {"Numeric": 3693, "Alphanumeric": 1538},
+    33: {"Numeric": 3909, "Alphanumeric": 1628},
+    34: {"Numeric": 4134, "Alphanumeric": 1722},
+    35: {"Numeric": 4343, "Alphanumeric": 1809},
+    36: {"Numeric": 4588, "Alphanumeric": 1911},
+    37: {"Numeric": 4775, "Alphanumeric": 1989},
+    38: {"Numeric": 5039, "Alphanumeric": 2099},
+    39: {"Numeric": 5313, "Alphanumeric": 2213},
+    40: {"Numeric": 5596, "Alphanumeric": 2331}
+}
+
+
+def choose_qr_version(char_count, char_type):
+    """
+    Choose the appropriate QR code version for the given character count and type.
+
+    :param char_count: Number of characters in the QR code.
+    :param char_type: Type of characters ('Numeric' or 'Alphanumeric').
+    :return: The smallest version number that can accommodate the character count, or None if not possible.
+    """
+
+    if char_count < 0:
+        return None
+
+    for version, capacities in CAPACITY_TABLE.items():
+        if capacities[char_type] >= char_count:
+            return version
+    return None
+
+
 class AlphanumericPair:
     @staticmethod
     def get_char_value(ch: str) -> int:
