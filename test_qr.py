@@ -2,7 +2,7 @@ import pytest
 
 from encoder import AlphanumericEncoder
 from polynomial import GeneratorPolynomial
-from qr import InvalidVersionNumber, QrCode, ALIGNMENT_PATTERN_LOCATIONS, InvalidMaskPatternId
+from qr import InvalidVersionNumber, QrCode, ALIGNMENT_PATTERN_LOCATIONS, InvalidMaskPatternId, PenaltyEvaluator
 
 
 def test_get_module_size_from_version():
@@ -160,6 +160,56 @@ def test_apply_mask():
     qr.add_format_string('H', 5)
 
     qr.draw()
+
+
+def test_evaluate():
+    version = 2
+    qr = QrCode(version)
+    qr.add_static_patterns()
+
+    enc = AlphanumericEncoder.encode("HELLO WORLD")
+    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
+    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
+
+    evaluator = PenaltyEvaluator()
+
+    qr.add_encoded_data(data)
+    qr.add_timing_patterns()
+    qr.add_dark_module()
+    qr.matrix = qr.apply_mask(0)
+    qr.add_format_string('H', 0)
+    score = evaluator.evaluate(qr.matrix)
+    print(score)
+    qr.draw()
+
+
+def test_penalty_evaluator_privates_i_know_its_bad():
+    version = 2
+    qr = QrCode(version)
+    qr.add_static_patterns()
+
+    enc = AlphanumericEncoder.encode("HELLO WORLD")
+    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
+    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
+
+    evaluator = PenaltyEvaluator()
+
+    qr.add_encoded_data(data)
+    qr.add_timing_patterns()
+    qr.add_dark_module()
+    qr.matrix = qr.apply_mask(0)
+    qr.add_format_string('H', 0)
+    score = evaluator._evaluate_1(qr.matrix)
+    assert score == 210
+
+    score = evaluator._evaluate_2(qr.matrix)
+    assert score == 168
+
+    score = evaluator._evaluate_3(qr.matrix)
+    assert score == 120
+
+    score = evaluator._evaluate_4(qr.matrix)
+    assert score == 0
 
 
 def test_apply_mask_should_error_with_invalid_number():

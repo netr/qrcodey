@@ -1,4 +1,5 @@
 import math
+from collections import Counter
 from typing import Tuple, List
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -447,6 +448,36 @@ class QrCode:
         for i in range(0, 7):
             self.matrix[len(self.matrix[0]) - i - 1][8] = self.BLACK_MODULE if fs[i] == '1' else self.WHITE_MODULE
 
+    def evaluate_1(self) -> int:
+        points = 0
+        for r in range(len(self.matrix)):
+            count = 1
+            for c in range(1, len(self.matrix[r])):
+                if self.matrix[r][c] == self.matrix[r][c - 1]:
+                    count += 1
+                else:
+                    count = 1
+
+                if count == 5:
+                    points += 3
+                elif count > 5:
+                    points += 1
+
+        for c in range(len(self.matrix[0])):
+            count = 1
+            for r in range(1, len(self.matrix)):
+                if self.matrix[r][c] == self.matrix[r - 1][c]:
+                    count += 1
+                else:
+                    count = 1
+
+                if count == 5:
+                    points += 3
+                elif count > 5:
+                    points += 1
+
+        return points
+
     def draw(self):
         # Visualize the data
         plt.imshow(np.array(self.matrix), cmap='gray', vmin=0, vmax=2)
@@ -458,47 +489,179 @@ class QrCode:
 class MaskStrategies:
     def __init__(self):
         self.strategies = {
-            0: self.pattern_0,
-            1: self.pattern_1,
-            2: self.pattern_2,
-            3: self.pattern_3,
-            4: self.pattern_4,
-            5: self.pattern_5,
-            6: self.pattern_6,
-            7: self.pattern_7,
+            0: self._pattern_0,
+            1: self._pattern_1,
+            2: self._pattern_2,
+            3: self._pattern_3,
+            4: self._pattern_4,
+            5: self._pattern_5,
+            6: self._pattern_6,
+            7: self._pattern_7,
         }
 
     def get(self, pattern_id: int):
         return self.strategies.get(pattern_id)
 
     @staticmethod
-    def pattern_0(r: int, c: int) -> bool:
+    def _pattern_0(r: int, c: int) -> bool:
         return (r + c) % 2 == 0
 
     @staticmethod
-    def pattern_1(r: int, c: int) -> bool:
+    def _pattern_1(r: int, c: int) -> bool:
         return r % 2 == 0
 
     @staticmethod
-    def pattern_2(r: int, c: int) -> bool:
+    def _pattern_2(r: int, c: int) -> bool:
         return c % 3 == 0
 
     @staticmethod
-    def pattern_3(r: int, c: int) -> bool:
+    def _pattern_3(r: int, c: int) -> bool:
         return (r + c) % 3 == 0
 
     @staticmethod
-    def pattern_4(r: int, c: int) -> bool:
+    def _pattern_4(r: int, c: int) -> bool:
         return ((r // 2) + (c // 3)) % 2 == 0
 
     @staticmethod
-    def pattern_5(r: int, c: int) -> bool:
+    def _pattern_5(r: int, c: int) -> bool:
         return ((r * c) % 2) + ((r * c) % 3) == 0
 
     @staticmethod
-    def pattern_6(r: int, c: int) -> bool:
+    def _pattern_6(r: int, c: int) -> bool:
         return (((r * c) % 2) + ((r * c) % 3)) % 2 == 0
 
     @staticmethod
-    def pattern_7(r: int, c: int) -> bool:
+    def _pattern_7(r: int, c: int) -> bool:
         return (((r + c) % 2) + ((r * c) % 3)) % 2 == 0
+
+
+class PenaltyEvaluator:
+    def __init__(self):
+        self.conditions = {
+            1: self._evaluate_1,
+        }
+
+    def evaluate(self, matrix: List[List[int]]) -> int:
+        best = 1
+        score = 0
+        tmp_score = self._evaluate_1(matrix)
+        if tmp_score > score:
+            best = 1
+            score = tmp_score
+
+        tmp_score = self._evaluate_2(matrix)
+        if tmp_score > score:
+            best = 2
+            score = tmp_score
+
+        tmp_score = self._evaluate_3(matrix)
+        if tmp_score > score:
+            best = 3
+            score = tmp_score
+
+        tmp_score = self._evaluate_4(matrix)
+        if tmp_score > score:
+            best = 4
+
+        return best
+
+    @staticmethod
+    def _evaluate_1(matrix: List[List[int]]) -> int:
+        points = 0
+        for r in range(len(matrix)):
+            count = 1
+            for c in range(1, len(matrix[r])):
+                if matrix[r][c] == matrix[r][c - 1]:
+                    count += 1
+                else:
+                    count = 1
+
+                if count == 5:
+                    points += 3
+                elif count > 5:
+                    points += 1
+
+        for c in range(len(matrix[0])):
+            count = 1
+            for r in range(1, len(matrix)):
+                if matrix[r][c] == matrix[r - 1][c]:
+                    count += 1
+                else:
+                    count = 1
+
+                if count == 5:
+                    points += 3
+                elif count > 5:
+                    points += 1
+
+        return points
+
+    @staticmethod
+    def _evaluate_2(matrix: List[List[int]]) -> int:
+        points = 0
+        dirs = [(0, 1), (1, 0), (1, 1)]
+        ROWS, COLS = len(matrix), len(matrix[0])
+        for r in range(len(matrix)):
+            for c in range(len(matrix[r])):
+                matches = 0
+                for (dr, dc) in dirs:
+                    nr, nc = r + dr, c + dc
+                    if nr in range(ROWS) and nc in range(COLS):
+                        if matrix[r][c] == matrix[nr][nc]:
+                            matches += 1
+                        else:
+                            break
+                if matches == 3:
+                    points += 3
+
+        return points
+
+    @staticmethod
+    def _evaluate_3(matrix: List[List[int]]) -> int:
+        points = 0
+        pattern_1 = (2, 2, 2, 2, 0, 2, 0, 0, 0, 2, 0)
+        pattern_2 = (0, 2, 0, 0, 0, 2, 0, 2, 2, 2, 2)
+
+        for r in range(len(matrix)):
+            for c in range(len(matrix[r])):
+                if tuple(matrix[r][c:c + 11]) == pattern_1 or tuple(matrix[r][c:c + 11]) == pattern_2:
+                    points += 40
+
+        matrix = list(zip(*matrix))
+        for r in range(len(matrix)):
+            for c in range(len(matrix[r])):
+                if matrix[r][c:c + 11] == pattern_1 or matrix[r][c:c + 11] == pattern_2:
+                    points += 40
+
+        return points
+
+    @staticmethod
+    def _evaluate_4(matrix: List[List[int]]) -> int:
+        black = 0
+        white = 0
+        for r in range(len(matrix)):
+            for c in range(len(matrix[r])):
+                if matrix[r][c] == 0:
+                    black += 1
+                else:
+                    white += 1
+
+        # Calculate the percentage of dark modules in the QR code.
+        dark_pct = (black / (black + white)) * 100
+
+        # Determine the previous and next multiple of five of the percentage in step 1
+        prev_multiple_of_five = dark_pct // 5 * 5
+        next_multiple_of_five = prev_multiple_of_five + 5
+
+        # Subtract 50 from the numbers in step 2. Then, take their absolute values.
+        value_prev = abs(dark_pct - prev_multiple_of_five)
+        value_next = abs(dark_pct - next_multiple_of_five)
+
+        # Divide the numbers from Step 3 by 5
+        value_prev /= 5
+        value_next /= 5
+
+        # Take the smaller of the two numbers and multiply it by 10.
+        final_score = min(value_prev, value_next) * 10
+
+        return int(final_score)
