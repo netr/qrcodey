@@ -16,6 +16,9 @@ def test_get_module_size_from_version():
 def test_generate_base_matrix_with_finder_patterns_and_separators():
     version = 2
     qr = QrCode(version)
+    qr.add_finder_patterns()
+    qr.add_separators()
+
     grid = [[0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0],
             [0, 2, 2, 2, 2, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 2, 2, 2, 2, 0],
             [0, 2, 0, 0, 0, 2, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 2, 0, 0, 0, 2, 0],
@@ -45,16 +48,6 @@ def test_generate_base_matrix_with_finder_patterns_and_separators():
     assert grid == qr.matrix
 
 
-def test_calculate_finder_pattern_positions():
-    qr = QrCode(1)
-    assert qr.calculate_top_right() == [14, 0]
-    assert qr.calculate_bottom_left() == [0, 14]
-
-    qr = QrCode(32)
-    assert qr.calculate_top_right() == [138, 0]
-    assert qr.calculate_bottom_left() == [0, 138]
-
-
 def test_get_alignment_center_points():
     alignments = QrCode(2).get_alignment_center_points()
     assert alignments == [(18, 18)]
@@ -66,6 +59,8 @@ def test_get_alignment_center_points():
 def test_draw_alignment():
     version = 2
     qr = QrCode(version)
+    qr.add_finder_patterns()
+    qr.add_separators()
     qr.add_alignment_patterns()
 
     grid = [[0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0],
@@ -100,6 +95,8 @@ def test_draw_alignment():
 def test_add_timing_patterns():
     version = 2
     qr = QrCode(version)
+    qr.add_finder_patterns()
+    qr.add_separators()
     qr.add_timing_patterns()
 
     grid = [[0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0],
@@ -134,10 +131,7 @@ def test_add_timing_patterns():
 def test_draw():
     version = 2
     qr = QrCode(version)
-    qr.add_reserve_modules()
-    qr.add_alignment_patterns()
-    qr.add_timing_patterns()
-    qr.add_dark_module()
+    qr.add_static_patterns()
 
     enc = AlphanumericEncoder.encode("HELLO WORLD")
     poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))

@@ -111,8 +111,6 @@ class QrCode:
         add_separators(self): Adds the separators to the QR code matrix.
         add_horiz_separators(self): Adds the horizontal separators to the QR code matrix.
         add_vertical_separators(self): Adds the vertical separators to the QR code matrix.
-        calculate_top_right(self) -> list: Calculates the position of the top-right finder pattern.
-        calculate_bottom_left(self) -> list: Calculates the position of the bottom-left finder pattern.
     """
     MAX_VERSION = 40  # REF 1
     MIN_VERSION = 1
@@ -127,7 +125,6 @@ class QrCode:
         self._version = version
         self._modules = self.get_module_size()
         self.matrix = [[self.EMPTY_MODULE] * self._modules for _ in range(self._modules)]
-        self.add_patterns_and_separators()
 
     def get_module_size(self) -> int:
         """
@@ -142,16 +139,30 @@ class QrCode:
 
         return self.MODULES_INCREMENT * (self._version - 1) + self.MIN_MODULES  # REF 1
 
-    def add_patterns_and_separators(self):
-        top_right = self.calculate_finder_position()
-        bottom_left = self.calculate_finder_position(is_bottom_left=True)
+    def add_static_patterns(self):
+        """
+        Helper function to add all of the static patterns required by the QR code to function properly
+        """
+        self.add_finder_patterns()
+        self.add_separators()
+        self.add_reserve_modules()
+        self.add_alignment_patterns()
+        self.add_timing_patterns()
+        self.add_dark_module()
+
+    def add_finder_patterns(self):
+        """
+        Adds the top-left, top-right and bottom-left finder patterns
+        :return:
+        """
+        top_right = self._calculate_finder_position()
+        bottom_left = self._calculate_finder_position(is_bottom_left=True)
 
         self.add_finder_pattern(0, 0)
         self.add_finder_pattern(*top_right)  # Use tuple unpacking
         self.add_finder_pattern(*bottom_left)
-        self.add_separators()
 
-    def calculate_finder_position(self, is_bottom_left=False):
+    def _calculate_finder_position(self, is_bottom_left=False):
         mod_minus_offset = self._modules - self.FINDER_OFFSET  # REF 1
         return (0, mod_minus_offset) if is_bottom_left else (mod_minus_offset, 0)
 
@@ -174,26 +185,20 @@ class QrCode:
                 self.matrix[i][j] = self.BLACK_MODULE
 
     def add_separators(self):
-        self.add_horiz_separators()
-        self.add_vertical_separators()
+        self._add_horiz_separators()
+        self._add_vertical_separators()
 
-    def add_horiz_separators(self):
+    def _add_horiz_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
             self.matrix[self.FINDER_OFFSET][i] = self.WHITE_MODULE
             self.matrix[self.FINDER_OFFSET][len(self.matrix[0]) - i - 1] = self.WHITE_MODULE
             self.matrix[len(self.matrix) - (self.FINDER_OFFSET + 1)][i] = self.WHITE_MODULE
 
-    def add_vertical_separators(self):
+    def _add_vertical_separators(self):
         for i in range(0, (self.FINDER_OFFSET + 1)):
             self.matrix[i][self.FINDER_OFFSET] = self.WHITE_MODULE
             self.matrix[i][len(self.matrix[0]) - (self.FINDER_OFFSET + 1)] = self.WHITE_MODULE
             self.matrix[len(self.matrix[0]) - i - 1][self.FINDER_OFFSET] = self.WHITE_MODULE
-
-    def calculate_top_right(self) -> [int, int]:
-        return [(((self._version - 1) * self.MODULES_INCREMENT) + self.MIN_MODULES) - self.FINDER_OFFSET, 0]
-
-    def calculate_bottom_left(self) -> [int, int]:
-        return [0, (((self._version - 1) * self.MODULES_INCREMENT) + self.MIN_MODULES) - self.FINDER_OFFSET]
 
     def add_alignment_patterns(self):
         """
@@ -283,17 +288,9 @@ class QrCode:
         for c in range(self.FINDER_OFFSET + 1, len(self.matrix[0]) - self.FINDER_OFFSET - 1):
             self.matrix[self.FINDER_OFFSET - 1][c] = self.BLACK_MODULE if c % 2 == 0 else self.WHITE_MODULE
 
-    def is_on_veritcal_timing(self, r, c):
-        if r in range(self.FINDER_OFFSET + 1, len(self.matrix) - self.FINDER_OFFSET - 1):
-            return c == self.FINDER_OFFSET - 1
-        return False
-
     def add_dark_module(self):
         r, c = ((self.MODULES_INCREMENT * self._version) + 9, 8)
         self.matrix[r][c] = self.BLACK_MODULE
-
-    def is_module_filled(self, r: int, c: int) -> bool:
-        return self.matrix[r][c] != self.EMPTY_MODULE
 
     def add_encoded_data(self, encoded_string: str):
         """
@@ -315,7 +312,7 @@ class QrCode:
             self.matrix[r][c] = module
 
             try:
-                while self.is_module_filled(r, c):
+                while self._is_module_filled(r, c):
                     # change pixel positions for next column and row
                     if order == ORDER_UP:
                         match switch_row:
@@ -349,11 +346,19 @@ class QrCode:
                         c -= 2
 
                     # fixes the issue of modules being upside down when touching the vertical timing line
-                    if self.is_on_veritcal_timing(r, c):
+                    if self._is_on_veritcal_timing(r, c):
                         c -= 1
 
             except IndexError:
                 break
+
+    def _is_on_veritcal_timing(self, r, c):
+        if r in range(self.FINDER_OFFSET + 1, len(self.matrix) - self.FINDER_OFFSET - 1):
+            return c == self.FINDER_OFFSET - 1
+        return False
+
+    def _is_module_filled(self, r: int, c: int) -> bool:
+        return self.matrix[r][c] != self.EMPTY_MODULE
 
     def draw(self):
         # Visualize the data
