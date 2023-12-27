@@ -1,10 +1,25 @@
 import math
+from enum import Enum
+from pathlib import Path
 from typing import Tuple, List
 
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
+
+from encoder import AlphanumericEncoder
+from polynomial import GeneratorPolynomial
+
+
+class Mode(Enum):
+    NUMERIC: str = "Numeric"
+    ALPHANUMERIC: str = "Alphanumeric"
+    BYTE: str = "Byte"
+    KANJI: str = "Kanji"
+
 
 ALIGNMENT_PATTERN_LOCATIONS = {
+    1: [],
     2: [6, 18],  # version: [center, module row and column]
     3: [6, 22],
     4: [6, 26],
@@ -139,6 +154,22 @@ class InvalidMaskPatternId(Exception):
     pass
 
 
+def encode_data(data: str) -> str:
+    enc = AlphanumericEncoder.encode(data)
+    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
+    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
+    return data
+
+
+def make(data: str):
+    qr = QrCode(data)
+    qr.add_static_patterns()
+    qr.add_encoded_data(encode_data(data))
+    qr.add_dark_module()
+
+    return qr
+
+
 class QrCode:
     """
     The QrCode class represents a QR code.
@@ -171,11 +202,12 @@ class QrCode:
     EMPTY_MODULE = 1
     WHITE_MODULE = 2
 
-    def __init__(self, version: int):
-        self._version = version
+    def __init__(self, data: str):
+        self._rawdata = data
+        self._version = choose_qr_version(len(data), Mode.ALPHANUMERIC.value)
         self._modules = self.get_module_size()
+        self._dataset = set()
         self.matrix = [[self.EMPTY_MODULE] * self._modules for _ in range(self._modules)]
-        self.dataset = set()
 
     def get_module_size(self) -> int:
         """
@@ -185,7 +217,7 @@ class QrCode:
         More: https://tritonstore.com.au/qr-code-size/
         :return: Number of modules to be represented by a nxn grid
         """
-        if self._version < self.MIN_VERSION or self._version > self.MAX_VERSION:
+        if self._version is None or self._version < self.MIN_VERSION or self._version > self.MAX_VERSION:
             raise InvalidVersionNumber(self._version)
 
         return self.MODULES_INCREMENT * (self._version - 1) + self.MIN_MODULES  # REF 1
@@ -197,8 +229,8 @@ class QrCode:
         self.add_finder_patterns()
         self.add_separators()
         self.add_alignment_patterns()
-        self.add_timing_patterns()
         self.add_reserve_modules()
+        self.add_timing_patterns()
         self.add_dark_module()
 
     def add_finder_patterns(self):
@@ -361,7 +393,7 @@ class QrCode:
         for i, ch in enumerate(encoded_string):
             module = self.WHITE_MODULE if ch == '0' else self.BLACK_MODULE
             self.matrix[r][c] = module
-            self.dataset.add((r, c))
+            self._dataset.add((r, c))
 
             try:
                 while self._is_module_filled(r, c):
@@ -410,7 +442,7 @@ class QrCode:
             raise InvalidMaskPatternId
 
         masked = self.matrix[:]
-        for (r, c) in self.dataset:
+        for (r, c) in self._dataset:
             if strategy(r, c):
                 masked[r][c] = self.WHITE_MODULE if masked[r][c] is self.BLACK_MODULE else self.BLACK_MODULE
 
@@ -465,12 +497,49 @@ class QrCode:
 
         return best_mask
 
-    def draw(self):
+    def _generate_best_fit(self, ecc: str) -> List[List[int]]:
+        """
+        Find the mask with the lowest penalty score and apply it to the internal matrix.
+        Used by `draw` and `save` to ensure they are idempotent.
+        Format strings are added in this function also, because they are coupled by the ecc and mask.
+
+        :param ecc: Error Correction Code
+        :return: New matrix object with best fit mask and format strings
+        """
+        mask = self.find_best_mask(ecc)
+        matrix = self.apply_mask(mask)
+        matrix = self.add_format_string(matrix, ecc, mask)
+        return matrix
+
+    def draw(self, ecc: str = 'H'):
+        matrix = self._generate_best_fit(ecc)
+
         # Visualize the data
-        plt.imshow(np.array(self.matrix), cmap='gray', vmin=0, vmax=2)
+        plt.imshow(np.array(matrix), cmap='gray', vmin=0, vmax=2)
 
         # Display the image
         plt.show()
+
+    def save(self, path: Path, scale=10, bg_color=(255, 255, 255), data_color=(0, 0, 0), ecc: str = 'H'):
+        matrix = self._generate_best_fit(ecc)
+
+        img = Image.new(mode="RGB",
+                        size=(len(matrix), len(matrix[0])),
+                        color=bg_color
+                        )
+        pixels = img.load()
+
+        # add qr data to image
+        for r in range(img.size[0]):
+            for c in range(img.size[1]):
+                if matrix[r][c] == 0:
+                    pixels[r, c] = data_color
+
+        # resize image to sacle
+        img = img.resize(size=(img.size[0] * scale, img.size[1] * scale))
+
+        # save image to disk
+        img.save(path)
 
 
 class MaskStrategies:
@@ -636,3 +705,65 @@ class PenaltyEvaluator:
         final_score = min(value_prev, value_next) * 10
 
         return int(final_score)
+
+
+CAPACITY_TABLE = {
+    1: {"Numeric": 34, "Alphanumeric": 14},
+    2: {"Numeric": 63, "Alphanumeric": 26},
+    3: {"Numeric": 101, "Alphanumeric": 42},
+    4: {"Numeric": 149, "Alphanumeric": 62},
+    5: {"Numeric": 202, "Alphanumeric": 84},
+    6: {"Numeric": 255, "Alphanumeric": 106},
+    7: {"Numeric": 293, "Alphanumeric": 122},
+    8: {"Numeric": 365, "Alphanumeric": 152},
+    9: {"Numeric": 432, "Alphanumeric": 180},
+    10: {"Numeric": 513, "Alphanumeric": 213},
+    11: {"Numeric": 604, "Alphanumeric": 251},
+    12: {"Numeric": 691, "Alphanumeric": 287},
+    13: {"Numeric": 796, "Alphanumeric": 331},
+    14: {"Numeric": 871, "Alphanumeric": 362},
+    15: {"Numeric": 991, "Alphanumeric": 412},
+    16: {"Numeric": 1082, "Alphanumeric": 450},
+    17: {"Numeric": 1212, "Alphanumeric": 504},
+    18: {"Numeric": 1346, "Alphanumeric": 560},
+    19: {"Numeric": 1500, "Alphanumeric": 624},
+    20: {"Numeric": 1600, "Alphanumeric": 666},
+    21: {"Numeric": 1708, "Alphanumeric": 711},
+    22: {"Numeric": 1872, "Alphanumeric": 779},
+    23: {"Numeric": 2059, "Alphanumeric": 857},
+    24: {"Numeric": 2188, "Alphanumeric": 911},
+    25: {"Numeric": 2395, "Alphanumeric": 997},
+    26: {"Numeric": 2544, "Alphanumeric": 1059},
+    27: {"Numeric": 2701, "Alphanumeric": 1125},
+    28: {"Numeric": 2857, "Alphanumeric": 1190},
+    29: {"Numeric": 3035, "Alphanumeric": 1264},
+    30: {"Numeric": 3289, "Alphanumeric": 1370},
+    31: {"Numeric": 3486, "Alphanumeric": 1452},
+    32: {"Numeric": 3693, "Alphanumeric": 1538},
+    33: {"Numeric": 3909, "Alphanumeric": 1628},
+    34: {"Numeric": 4134, "Alphanumeric": 1722},
+    35: {"Numeric": 4343, "Alphanumeric": 1809},
+    36: {"Numeric": 4588, "Alphanumeric": 1911},
+    37: {"Numeric": 4775, "Alphanumeric": 1989},
+    38: {"Numeric": 5039, "Alphanumeric": 2099},
+    39: {"Numeric": 5313, "Alphanumeric": 2213},
+    40: {"Numeric": 5596, "Alphanumeric": 2331}
+}
+
+
+def choose_qr_version(char_count, char_type):
+    """
+    Choose the appropriate QR code version for the given character count and type.
+
+    :param char_count: Number of characters in the QR code.
+    :param char_type: Type of characters ('Numeric' or 'Alphanumeric').
+    :return: The smallest version number that can accommodate the character count, or None if not possible.
+    """
+
+    if char_count <= 0:
+        return None
+
+    for version, capacities in CAPACITY_TABLE.items():
+        if capacities[char_type] >= char_count:
+            return version
+    return None
