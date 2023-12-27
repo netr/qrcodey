@@ -159,5 +159,7 @@ def test_draw():
             if qr.matrix[r][c] != 1:
                 count += 1
     print(count, (rows * cols), (rows * cols) - count)
+    qr.add_reserve_modules(1)
+    qr.add_timing_patterns()
 
     qr.draw()

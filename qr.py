@@ -119,13 +119,14 @@ class QrCode:
     MODULES_INCREMENT = 4
     MIN_MODULES = 21
     FINDER_OFFSET = 7
-    WHITE_MODULE = 2
     BLACK_MODULE = 0
+    EMPTY_MODULE = 1
+    WHITE_MODULE = 2
 
     def __init__(self, version: int):
         self._version = version
         self._modules = self.get_module_size()
-        self.matrix = [[1] * self._modules for _ in range(self._modules)]
+        self.matrix = [[self.EMPTY_MODULE] * self._modules for _ in range(self._modules)]
         self.add_patterns_and_separators()
 
     def get_module_size(self) -> int:
@@ -215,16 +216,18 @@ class QrCode:
             for dx, dy in [(-1, -2), (0, -2), (1, -2), (-1, 2), (0, 2), (1, 2)]:
                 self.matrix[x + dx][y + dy] = self.BLACK_MODULE
 
-    def add_reserve_modules(self):
+    def add_reserve_modules(self, pixel=None):
+        if pixel is None:
+            pixel = self.BLACK_MODULE
         for i in range(0, 8):
-            self.matrix[8][i] = self.BLACK_MODULE
-            self.matrix[8][len(self.matrix[0]) - i - 1] = self.BLACK_MODULE
+            self.matrix[8][i] = pixel
+            self.matrix[8][len(self.matrix[0]) - i - 1] = pixel
 
         for i in range(0, 9):
-            self.matrix[i][8] = self.BLACK_MODULE
+            self.matrix[i][8] = pixel
 
         for i in range(0, 7):
-            self.matrix[len(self.matrix) - i - 1][8] = self.BLACK_MODULE
+            self.matrix[len(self.matrix) - i - 1][8] = pixel
 
     def get_alignment_center_points(self) -> List[Tuple[int, int]]:
         """
@@ -284,63 +287,64 @@ class QrCode:
         r, c = ((self.MODULES_INCREMENT * self._version) + 9, 8)
         self.matrix[r][c] = self.BLACK_MODULE
 
+    def is_module_filled(self, r: int, c: int) -> bool:
+        return self.matrix[r][c] != self.EMPTY_MODULE
+
     def add_encoded_data(self, encoded_string: str):
         """
         Start at bottom left and zig zag data into matrix
         :param encoded_string:
         :return:
         """
-
+        
+        ORDER_UP, ORDER_DOWN = 1, -1
         ROWS, COLS = len(self.matrix[0]), len(self.matrix)
+        # start at the bottom left of the matrix
         r, c = ROWS - 1, COLS - 1
-        nr, nc, order = -1, 0, 1
-        vis = set()
+        # order dictates the current direction of module swaps
+        order: int = ORDER_UP
+        # switch row is triggered when two modules have been swapped on the current row
+        switch_row = False
         for i, ch in enumerate(encoded_string):
-            pixel = self.WHITE_MODULE if ch == '0' else self.BLACK_MODULE
-            self.matrix[r][c] = pixel
+            module = self.WHITE_MODULE if ch == '0' else self.BLACK_MODULE
+            self.matrix[r][c] = module
 
-            # iterate until we find the next available module point
             try:
-                while self.matrix[r][c] != 1:
+                while self.is_module_filled(r, c):
                     # change pixel positions for next column and row
-                    if order is 1:  # up
-                        if nc == -1:
-                            nr, nc = -1, 0
-                            r -= 1
-                            c += 1
-                        else:
-                            nr, nc = 0, -1
-                            c -= 1
-                    else:
-                        if nc == -1:
-                            nr, nc = -1, 0
-                            r += 1
-                            c += 1
-                        else:
-                            nr, nc = 0, -1
-                            c -= 1
+                    if order == ORDER_UP:
+                        match switch_row:
+                            case True:
+                                switch_row = False
+                                r -= 1
+                                c += 1
+                            case False:
+                                switch_row = True
+                                c -= 1
+                    elif order == ORDER_DOWN:
+                        match switch_row:
+                            case True:
+                                switch_row = False
+                                r += 1
+                                c += 1
+                            case False:
+                                switch_row = True
+                                c -= 1
 
                     # check if out of bounds
                     if r < 0:
-                        order = -1
+                        order = ORDER_DOWN
+                        switch_row = False
                         r = 0
                         c -= 2
-                        nr, nc = -1, 0
-                    if r >= ROWS:
-                        order = 1
+                    elif r >= ROWS:
+                        order = ORDER_UP
+                        switch_row = False
                         r = ROWS - 1
                         c -= 2
-                        nr, nc = -1, 0
 
-                vis.add((r, c))
-            except:
-                print("what?", r, c)
+            except IndexError:
                 break
-            # print((r, c))
-            # print("iter", r, c, i, ch, start, self.matrix[r][c])
-
-        print(len(vis))
-        print(vis)
 
     def draw(self):
         # Visualize the data
