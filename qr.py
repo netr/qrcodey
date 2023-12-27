@@ -1,7 +1,6 @@
 import math
-from collections import Counter
 from typing import Tuple, List
-from PIL import Image
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -155,7 +154,9 @@ class QrCode:
         __init__(self, version: int): Initializes a new instance of the QrCode class.
         get_module_size(self) -> int: Calculates the number of modules based on the QR code version.
         add_patterns_and_separators(self): Adds the finder patterns and separators to the QR code.
-        calculate_finder_position(self, is_bottom_left=False) -> tuple: Calculates the position of the finder patterns.
+        calculate_finder_position(self, is_bottom_left=False) ->
+    evaluator = PenaltyEvaluator()
+ tuple: Calculates the position of the finder patterns.
         add_finder_pattern(self, xoffset, yoffset): Adds the finder pattern to the QR code matrix.
         add_separators(self): Adds the separators to the QR code matrix.
         add_horiz_separators(self): Adds the horizontal separators to the QR code matrix.
@@ -450,12 +451,13 @@ class QrCode:
 
         return matrix
 
-    def find_best_mask(self, evaluator: 'PenaltyEvaluator'):
+    def find_best_mask(self, ecc: str):
+        evaluator = PenaltyEvaluator()
         best_mask = -1
         best_score = math.inf
         for i in range(8):
             temp_matrix = self.apply_mask(i)
-            temp_matrix = self.add_format_string(temp_matrix, 'H', i)
+            temp_matrix = self.add_format_string(temp_matrix, ecc, i)
             score = evaluator.evaluate(temp_matrix)
             if score < best_score:
                 best_mask = i

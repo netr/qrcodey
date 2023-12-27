@@ -1,10 +1,8 @@
-import math
-
 import pytest
 
 from encoder import AlphanumericEncoder
 from polynomial import GeneratorPolynomial
-from qr import InvalidVersionNumber, QrCode, ALIGNMENT_PATTERN_LOCATIONS, InvalidMaskPatternId, PenaltyEvaluator
+from qr import InvalidVersionNumber, QrCode, InvalidMaskPatternId, PenaltyEvaluator
 
 
 def test_get_module_size_from_version():
@@ -132,32 +130,13 @@ def test_add_timing_patterns():
 
 def test_draw():
     pytest.skip("only used during development / debugging")
-    version = 2
-    qr = QrCode(version)
-    qr.add_static_patterns()
-
-    enc = AlphanumericEncoder.encode("HELLO WORLD")
-    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
-    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
-
-    qr.add_encoded_data(data)
-    qr.add_reserve_modules(1)
-    qr.add_timing_patterns()
+    qr = qrcode_mock_with_data()
     qr.draw()
 
 
 def test_apply_mask():
-    version = 2
-    qr = QrCode(version)
-    qr.add_static_patterns()
+    qr = qrcode_mock_with_data()
 
-    enc = AlphanumericEncoder.encode("HELLO WORLD")
-    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
-    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
-
-    qr.add_encoded_data(data)
-    qr.add_timing_patterns()
-    qr.add_dark_module()
     qr.matrix = qr.apply_mask(5)
     qr.add_format_string(qr.matrix, 'H', 5)
 
@@ -165,37 +144,15 @@ def test_apply_mask():
 
 
 def test_penalty_evaluator_find_best_mask():
-    version = 2
-    qr = QrCode(version)
-    qr.add_static_patterns()
+    qr = qrcode_mock_with_data()
 
-    enc = AlphanumericEncoder.encode("HELLO WORLD")
-    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
-    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
-
-    evaluator = PenaltyEvaluator()
-
-    qr.add_encoded_data(data)
-    qr.add_timing_patterns()
-    qr.add_dark_module()
-
-    assert qr.find_best_mask(evaluator)
+    assert qr.find_best_mask('H')
 
 
 def test_penalty_evaluator_privates_i_know_its_bad():
-    version = 2
-    qr = QrCode(version)
-    qr.add_static_patterns()
-
-    enc = AlphanumericEncoder.encode("HELLO WORLD")
-    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
-    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
-
     evaluator = PenaltyEvaluator()
+    qr = qrcode_mock_with_data()
 
-    qr.add_encoded_data(data)
-    qr.add_timing_patterns()
-    qr.add_dark_module()
     qr.matrix = qr.apply_mask(0)
     qr.add_format_string(qr.matrix, 'H', 0)
     score = evaluator._evaluate_1(qr.matrix)
@@ -215,15 +172,7 @@ def test_penalty_evaluator_privates_i_know_its_bad():
 
 
 def test_apply_mask_should_error_with_invalid_number():
-    version = 2
-    qr = QrCode(version)
-    qr.add_static_patterns()
-
-    enc = AlphanumericEncoder.encode("HELLO WORLD")
-    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
-    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
-
-    qr.add_encoded_data(data)
+    qr = qrcode_mock_with_data()
     with pytest.raises(InvalidMaskPatternId):
         qr.matrix = qr.apply_mask(8)
 
@@ -261,3 +210,26 @@ def test_add_format_string():
             [1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
     assert grid == qr.matrix
+
+
+def qrcode_mock() -> QrCode:
+    version = 2
+    qr = QrCode(version)
+    qr.add_static_patterns()
+    return qr
+
+
+def qrcode_mock_with_data() -> QrCode:
+    qr = qrcode_mock()
+    data = encoded_data()
+    qr.add_encoded_data(data)
+    qr.add_timing_patterns()
+    qr.add_dark_module()
+    return qr
+
+
+def encoded_data() -> str:
+    enc = AlphanumericEncoder.encode("HELLO WORLD")
+    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
+    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
+    return data
