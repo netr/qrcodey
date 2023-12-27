@@ -2,11 +2,11 @@ from encoder import AlphanumericEncoder, AlphanumericPair
 
 
 def test_alphanumeric_encoder_encode():
-    assert AlphanumericEncoder.encode("HELLO WORLD") == \
+    assert AlphanumericEncoder.encode("HELLO WORLD", 2, 'H') == \
            "0010000001011011000010110111100011010001011100101101110001001101" \
            "0100001101000000111011000001000111101100000100011110110000010001"
 
-    assert AlphanumericEncoder.encode("HELLO CC WORLD") == \
+    assert AlphanumericEncoder.encode("HELLO CC WORLD", 2, 'H') == \
            "0010000001110011000010110111100011010001011100010001010001100111" \
            "0100100010100110111011111000000011101100000100011110110000010001"
 

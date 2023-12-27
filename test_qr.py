@@ -238,7 +238,7 @@ def qrcode_mock_with_data() -> QrCode:
 
 
 def encoded_data_mock() -> str:
-    enc = AlphanumericEncoder.encode("HELLO WORLD")
+    enc = AlphanumericEncoder.encode("HELLO WORLD", 2, 'H')
     poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
     data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
     return data

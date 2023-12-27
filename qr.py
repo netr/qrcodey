@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
+from const import CAPACITY_TABLE, FORMAT_STRINGS, ALIGNMENT_PATTERN_LOCATIONS
 from encoder import AlphanumericEncoder
 from polynomial import GeneratorPolynomial
 
@@ -16,130 +17,6 @@ class Mode(Enum):
     ALPHANUMERIC: str = "Alphanumeric"
     BYTE: str = "Byte"
     KANJI: str = "Kanji"
-
-
-ALIGNMENT_PATTERN_LOCATIONS = {
-    1: [],
-    2: [6, 18],  # version: [center, module row and column]
-    3: [6, 22],
-    4: [6, 26],
-    5: [6, 30],
-    6: [6, 34],
-    7: [6, 22, 38],
-    8: [6, 24, 42],
-    9: [6, 26, 46],
-    10: [6, 28, 50],
-    11: [6, 30, 54],
-    12: [6, 32, 58],
-    13: [6, 34, 62],
-    14: [6, 26, 46, 66],
-    15: [6, 26, 48, 70],
-    16: [6, 26, 50, 74],
-    17: [6, 30, 54, 78],
-    18: [6, 30, 56, 82],
-    19: [6, 30, 58, 86],
-    20: [6, 34, 62, 90],
-    21: [6, 28, 50, 72, 94],
-    22: [6, 26, 50, 74, 98],
-    23: [6, 30, 54, 78, 102],
-    24: [6, 28, 54, 80, 106],
-    25: [6, 32, 58, 84, 110],
-    26: [6, 30, 58, 86, 114],
-    27: [6, 34, 62, 90, 118],
-    28: [6, 26, 50, 74, 98, 122],
-    29: [6, 30, 54, 78, 102, 126],
-    30: [6, 26, 52, 78, 104, 130],
-    31: [6, 30, 56, 82, 108, 134],
-    32: [6, 34, 60, 86, 112, 138],
-    33: [6, 30, 58, 86, 114, 142],
-    34: [6, 34, 62, 90, 118, 146],
-    35: [6, 30, 54, 78, 102, 126, 150],
-    36: [6, 24, 50, 76, 102, 128, 154],
-    37: [6, 28, 54, 80, 106, 132, 158],
-    38: [6, 32, 58, 84, 110, 136, 162],
-    39: [6, 26, 54, 82, 110, 138, 166],
-    40: [6, 30, 58, 86, 114, 142, 170]
-}
-
-VERSION_TABLE = {
-    7: '000111110010010100',
-    8: '001000010110111100',
-    9: '001001101010011001',
-    10: '001010010011010011',
-    11: '001011101111110110',
-    12: '001100011101100010',
-    13: '001101100001000111',
-    14: '001110011000001101',
-    15: '001111100100101000',
-    16: '010000101101111000',
-    17: '010001010001011101',
-    18: '010010101000010111',
-    19: '010011010100110010',
-    20: '010100100110100110',
-    21: '010101011010000011',
-    22: '010110100011001001',
-    23: '010111011111101100',
-    24: '011000111011000100',
-    25: '011001000111100001',
-    26: '011010111110101011',
-    27: '011011000010001110',
-    28: '011100110000011010',
-    29: '011101001100111111',
-    30: '011110110101110101',
-    31: '011111001001010000',
-    32: '100000100111010101',
-    33: '100001011011110000',
-    34: '100010100010111010',
-    35: '100011011110011111',
-    36: '100100101100001011',
-    37: '100101010000101110',
-    38: '100110101001100100',
-    39: '100111010101000001',
-    40: '101000110001101001',
-}
-
-FORMAT_STRINGS = {
-    'L': {
-        0: '111011111000100',
-        1: '111001011110011',
-        2: '111110110101010',
-        3: '111100010011101',
-        4: '110011000101111',
-        5: '110001100011000',
-        6: '110110001000001',
-        7: '110100101110110',
-    },
-    'M': {
-        0: '101010000010010',
-        1: '101000100100101',
-        2: '101111001111100',
-        3: '101101101001011',
-        4: '100010111111001',
-        5: '100000011001110',
-        6: '100111110010111',
-        7: '100101010100000',
-    },
-    'Q': {
-        0: '011010101011111',
-        1: '011000001101000',
-        2: '011111100110001',
-        3: '011101000000110',
-        4: '010010010110100',
-        5: '010000110000011',
-        6: '010111011011010',
-        7: '010101111101101',
-    },
-    'H': {
-        0: '001011010001001',
-        1: '001001110111110',
-        2: '001110011100111',
-        3: '001100111010000',
-        4: '000011101100010',
-        5: '000001001010101',
-        6: '000110100001100',
-        7: '000100000111011',
-    }
-}
 
 
 class InvalidVersionNumber(Exception):
@@ -155,7 +32,7 @@ class InvalidMaskPatternId(Exception):
 
 
 def encode_data(data: str) -> str:
-    enc = AlphanumericEncoder.encode(data)
+    enc = AlphanumericEncoder.encode(data, 2, 'H')
     poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
     data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
 
@@ -706,50 +583,6 @@ class PenaltyEvaluator:
         final_score = min(value_prev, value_next) * 10
 
         return int(final_score)
-
-
-CAPACITY_TABLE = {
-    1: {"Numeric": 34, "Alphanumeric": 14},
-    2: {"Numeric": 63, "Alphanumeric": 26},
-    3: {"Numeric": 101, "Alphanumeric": 42},
-    4: {"Numeric": 149, "Alphanumeric": 62},
-    5: {"Numeric": 202, "Alphanumeric": 84},
-    6: {"Numeric": 255, "Alphanumeric": 106},
-    7: {"Numeric": 293, "Alphanumeric": 122},
-    8: {"Numeric": 365, "Alphanumeric": 152},
-    9: {"Numeric": 432, "Alphanumeric": 180},
-    10: {"Numeric": 513, "Alphanumeric": 213},
-    11: {"Numeric": 604, "Alphanumeric": 251},
-    12: {"Numeric": 691, "Alphanumeric": 287},
-    13: {"Numeric": 796, "Alphanumeric": 331},
-    14: {"Numeric": 871, "Alphanumeric": 362},
-    15: {"Numeric": 991, "Alphanumeric": 412},
-    16: {"Numeric": 1082, "Alphanumeric": 450},
-    17: {"Numeric": 1212, "Alphanumeric": 504},
-    18: {"Numeric": 1346, "Alphanumeric": 560},
-    19: {"Numeric": 1500, "Alphanumeric": 624},
-    20: {"Numeric": 1600, "Alphanumeric": 666},
-    21: {"Numeric": 1708, "Alphanumeric": 711},
-    22: {"Numeric": 1872, "Alphanumeric": 779},
-    23: {"Numeric": 2059, "Alphanumeric": 857},
-    24: {"Numeric": 2188, "Alphanumeric": 911},
-    25: {"Numeric": 2395, "Alphanumeric": 997},
-    26: {"Numeric": 2544, "Alphanumeric": 1059},
-    27: {"Numeric": 2701, "Alphanumeric": 1125},
-    28: {"Numeric": 2857, "Alphanumeric": 1190},
-    29: {"Numeric": 3035, "Alphanumeric": 1264},
-    30: {"Numeric": 3289, "Alphanumeric": 1370},
-    31: {"Numeric": 3486, "Alphanumeric": 1452},
-    32: {"Numeric": 3693, "Alphanumeric": 1538},
-    33: {"Numeric": 3909, "Alphanumeric": 1628},
-    34: {"Numeric": 4134, "Alphanumeric": 1722},
-    35: {"Numeric": 4343, "Alphanumeric": 1809},
-    36: {"Numeric": 4588, "Alphanumeric": 1911},
-    37: {"Numeric": 4775, "Alphanumeric": 1989},
-    38: {"Numeric": 5039, "Alphanumeric": 2099},
-    39: {"Numeric": 5313, "Alphanumeric": 2213},
-    40: {"Numeric": 5596, "Alphanumeric": 2331}
-}
 
 
 def choose_qr_version(char_count, char_type):

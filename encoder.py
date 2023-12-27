@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from const import ECC_BLOCKS, get_required_length_of_ecc_block
+
 ALPHANUMERIC_CHARS: str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: "
 
 
@@ -97,7 +99,7 @@ class AlphanumericPair:
 class AlphanumericEncoder:
 
     @classmethod
-    def encode(cls, text: str) -> str:
+    def encode(cls, text: str, version: int, ecc: str) -> str:
         # set mode indicator and character length
         encoded_string = ModeInidicators.ALPHANUMERIC.value
         encoded_string += cls.get_character_count_indicator(text)
@@ -107,7 +109,6 @@ class AlphanumericEncoder:
         encoded_string += "".join(encs)
 
         # terminator zeros (up to 4 zeros if padding is required)
-        min_length = 128
         terminator_zeros = cls.pad_terminator_zeros(encoded_string)
         encoded_string += terminator_zeros
 
@@ -115,8 +116,12 @@ class AlphanumericEncoder:
         modulus_padding = cls.pad_to_modulus_eight(encoded_string)
         encoded_string += modulus_padding
 
+        # https://www.thonky.com/qr-code-tutorial/error-correction-table
+        # Total Number of Data Codewords for this Version and EC Level (Multiplied by 8 bytes for binary length)
+        required_length = get_required_length_of_ecc_block(version, ecc)
+
         # pad final alternating bytes of 0xEC and 0x11 to the end of encoded string
-        encoded_string = cls.pad_remaining_bytes(encoded_string, min_length)
+        encoded_string = cls.pad_remaining_bytes(encoded_string, required_length)
 
         return encoded_string
 
@@ -151,12 +156,12 @@ class AlphanumericEncoder:
         return "0" * remaining_slots_to_modulus_eight
 
     @staticmethod
-    def pad_remaining_bytes(encoded_string: str, min_length: int) -> str:
+    def pad_remaining_bytes(encoded_string: str, required_length: int) -> str:
         """
         Alternate between adding 0xEC (11101100) and 0x11 (00010001) to the end of the encoded data until it reaches
         the required length.
         """
-        remaining_zero_slots = ((min_length - len(encoded_string)) // 8)
+        remaining_zero_slots = ((required_length - len(encoded_string)) // 8)
         for r in range(remaining_zero_slots):
             encoded_string += "11101100" if r % 2 == 0 else "00010001"
         return encoded_string
