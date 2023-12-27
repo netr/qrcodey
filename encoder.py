@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List
 
-from const import ECC_BLOCKS, get_required_length_of_ecc_block
+from const import ECC_BLOCKS, get_required_length_of_ecc_block, Mode
+from util import choose_qr_version
 
 ALPHANUMERIC_CHARS: str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: "
 
@@ -139,7 +140,15 @@ class AlphanumericEncoder:
 
     @staticmethod
     def get_character_count_indicator(text: str):
-        return "{0:b}".format(len(text)).rjust(9, "0")
+        version = choose_qr_version(len(text), Mode.ALPHANUMERIC.value)
+        width = 0
+        if 1 <= version <= 9:
+            width = 9
+        elif 10 <= version <= 26:
+            width = 11
+        elif 27 <= version:
+            width = 13
+        return "{0:b}".format(len(text)).rjust(width, "0")
 
     @staticmethod
     def pad_terminator_zeros(encoded_string: str) -> str:

@@ -1,5 +1,4 @@
 import math
-from enum import Enum
 from pathlib import Path
 from typing import Tuple, List
 
@@ -7,16 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-from const import CAPACITY_TABLE, FORMAT_STRINGS, ALIGNMENT_PATTERN_LOCATIONS
+from const import FORMAT_STRINGS, ALIGNMENT_PATTERN_LOCATIONS, Mode
 from encoder import AlphanumericEncoder
 from polynomial import GeneratorPolynomial
-
-
-class Mode(Enum):
-    NUMERIC: str = "Numeric"
-    ALPHANUMERIC: str = "Alphanumeric"
-    BYTE: str = "Byte"
-    KANJI: str = "Kanji"
+from util import choose_qr_version
 
 
 class InvalidVersionNumber(Exception):
@@ -583,21 +576,3 @@ class PenaltyEvaluator:
         final_score = min(value_prev, value_next) * 10
 
         return int(final_score)
-
-
-def choose_qr_version(char_count, char_type):
-    """
-    Choose the appropriate QR code version for the given character count and type.
-
-    :param char_count: Number of characters in the QR code.
-    :param char_type: Type of characters ('Numeric' or 'Alphanumeric').
-    :return: The smallest version number that can accommodate the character count, or None if not possible.
-    """
-
-    if char_count <= 0:
-        return None
-
-    for version, capacities in CAPACITY_TABLE.items():
-        if capacities[char_type] >= char_count:
-            return version
-    return None

@@ -1,3 +1,13 @@
+from enum import Enum
+
+
+class Mode(Enum):
+    NUMERIC: str = "Numeric"
+    ALPHANUMERIC: str = "Alphanumeric"
+    BYTE: str = "Byte"
+    KANJI: str = "Kanji"
+
+
 ALIGNMENT_PATTERN_LOCATIONS = {
     1: [],
     2: [6, 18],  # version: [center, module row and column]
@@ -122,46 +132,46 @@ FORMAT_STRINGS = {
 }
 
 CAPACITY_TABLE = {
-    1: {"Numeric": 34, "Alphanumeric": 14},
-    2: {"Numeric": 63, "Alphanumeric": 26},
-    3: {"Numeric": 101, "Alphanumeric": 42},
-    4: {"Numeric": 149, "Alphanumeric": 62},
-    5: {"Numeric": 202, "Alphanumeric": 84},
-    6: {"Numeric": 255, "Alphanumeric": 106},
-    7: {"Numeric": 293, "Alphanumeric": 122},
-    8: {"Numeric": 365, "Alphanumeric": 152},
-    9: {"Numeric": 432, "Alphanumeric": 180},
-    10: {"Numeric": 513, "Alphanumeric": 213},
-    11: {"Numeric": 604, "Alphanumeric": 251},
-    12: {"Numeric": 691, "Alphanumeric": 287},
-    13: {"Numeric": 796, "Alphanumeric": 331},
-    14: {"Numeric": 871, "Alphanumeric": 362},
-    15: {"Numeric": 991, "Alphanumeric": 412},
-    16: {"Numeric": 1082, "Alphanumeric": 450},
-    17: {"Numeric": 1212, "Alphanumeric": 504},
-    18: {"Numeric": 1346, "Alphanumeric": 560},
-    19: {"Numeric": 1500, "Alphanumeric": 624},
-    20: {"Numeric": 1600, "Alphanumeric": 666},
-    21: {"Numeric": 1708, "Alphanumeric": 711},
-    22: {"Numeric": 1872, "Alphanumeric": 779},
-    23: {"Numeric": 2059, "Alphanumeric": 857},
-    24: {"Numeric": 2188, "Alphanumeric": 911},
-    25: {"Numeric": 2395, "Alphanumeric": 997},
-    26: {"Numeric": 2544, "Alphanumeric": 1059},
-    27: {"Numeric": 2701, "Alphanumeric": 1125},
-    28: {"Numeric": 2857, "Alphanumeric": 1190},
-    29: {"Numeric": 3035, "Alphanumeric": 1264},
-    30: {"Numeric": 3289, "Alphanumeric": 1370},
-    31: {"Numeric": 3486, "Alphanumeric": 1452},
-    32: {"Numeric": 3693, "Alphanumeric": 1538},
-    33: {"Numeric": 3909, "Alphanumeric": 1628},
-    34: {"Numeric": 4134, "Alphanumeric": 1722},
-    35: {"Numeric": 4343, "Alphanumeric": 1809},
-    36: {"Numeric": 4588, "Alphanumeric": 1911},
-    37: {"Numeric": 4775, "Alphanumeric": 1989},
-    38: {"Numeric": 5039, "Alphanumeric": 2099},
-    39: {"Numeric": 5313, "Alphanumeric": 2213},
-    40: {"Numeric": 5596, "Alphanumeric": 2331}
+    1: {Mode.NUMERIC.value: 34, Mode.ALPHANUMERIC.value: 14},
+    2: {Mode.NUMERIC.value: 63, Mode.ALPHANUMERIC.value: 26},
+    3: {Mode.NUMERIC.value: 101, Mode.ALPHANUMERIC.value: 42},
+    4: {Mode.NUMERIC.value: 149, Mode.ALPHANUMERIC.value: 62},
+    5: {Mode.NUMERIC.value: 202, Mode.ALPHANUMERIC.value: 84},
+    6: {Mode.NUMERIC.value: 255, Mode.ALPHANUMERIC.value: 106},
+    7: {Mode.NUMERIC.value: 293, Mode.ALPHANUMERIC.value: 122},
+    8: {Mode.NUMERIC.value: 365, Mode.ALPHANUMERIC.value: 152},
+    9: {Mode.NUMERIC.value: 432, Mode.ALPHANUMERIC.value: 180},
+    10: {Mode.NUMERIC.value: 513, Mode.ALPHANUMERIC.value: 213},
+    11: {Mode.NUMERIC.value: 604, Mode.ALPHANUMERIC.value: 251},
+    12: {Mode.NUMERIC.value: 691, Mode.ALPHANUMERIC.value: 287},
+    13: {Mode.NUMERIC.value: 796, Mode.ALPHANUMERIC.value: 331},
+    14: {Mode.NUMERIC.value: 871, Mode.ALPHANUMERIC.value: 362},
+    15: {Mode.NUMERIC.value: 991, Mode.ALPHANUMERIC.value: 412},
+    16: {Mode.NUMERIC.value: 1082, Mode.ALPHANUMERIC.value: 450},
+    17: {Mode.NUMERIC.value: 1212, Mode.ALPHANUMERIC.value: 504},
+    18: {Mode.NUMERIC.value: 1346, Mode.ALPHANUMERIC.value: 560},
+    19: {Mode.NUMERIC.value: 1500, Mode.ALPHANUMERIC.value: 624},
+    20: {Mode.NUMERIC.value: 1600, Mode.ALPHANUMERIC.value: 666},
+    21: {Mode.NUMERIC.value: 1708, Mode.ALPHANUMERIC.value: 711},
+    22: {Mode.NUMERIC.value: 1872, Mode.ALPHANUMERIC.value: 779},
+    23: {Mode.NUMERIC.value: 2059, Mode.ALPHANUMERIC.value: 857},
+    24: {Mode.NUMERIC.value: 2188, Mode.ALPHANUMERIC.value: 911},
+    25: {Mode.NUMERIC.value: 2395, Mode.ALPHANUMERIC.value: 997},
+    26: {Mode.NUMERIC.value: 2544, Mode.ALPHANUMERIC.value: 1059},
+    27: {Mode.NUMERIC.value: 2701, Mode.ALPHANUMERIC.value: 1125},
+    28: {Mode.NUMERIC.value: 2857, Mode.ALPHANUMERIC.value: 1190},
+    29: {Mode.NUMERIC.value: 3035, Mode.ALPHANUMERIC.value: 1264},
+    30: {Mode.NUMERIC.value: 3289, Mode.ALPHANUMERIC.value: 1370},
+    31: {Mode.NUMERIC.value: 3486, Mode.ALPHANUMERIC.value: 1452},
+    32: {Mode.NUMERIC.value: 3693, Mode.ALPHANUMERIC.value: 1538},
+    33: {Mode.NUMERIC.value: 3909, Mode.ALPHANUMERIC.value: 1628},
+    34: {Mode.NUMERIC.value: 4134, Mode.ALPHANUMERIC.value: 1722},
+    35: {Mode.NUMERIC.value: 4343, Mode.ALPHANUMERIC.value: 1809},
+    36: {Mode.NUMERIC.value: 4588, Mode.ALPHANUMERIC.value: 1911},
+    37: {Mode.NUMERIC.value: 4775, Mode.ALPHANUMERIC.value: 1989},
+    38: {Mode.NUMERIC.value: 5039, Mode.ALPHANUMERIC.value: 2099},
+    39: {Mode.NUMERIC.value: 5313, Mode.ALPHANUMERIC.value: 2213},
+    40: {Mode.NUMERIC.value: 5596, Mode.ALPHANUMERIC.value: 2331}
 }
 
 GENERATOR_POLYNOMIALS = {
@@ -370,9 +380,85 @@ ECC_BLOCKS = {
         "M": (1373, 28, 19, 47, 10, 48),
         "Q": (985, 30, 15, 24, 25, 25),
         "H": (745, 30, 23, 15, 25, 16)
+    },
+    31: {
+        "L": (1843, 30, 13, 115, 3, 116),
+        "M": (1455, 28, 2, 46, 29, 47),
+        "Q": (1033, 30, 42, 24, 1, 25),
+        "H": (793, 30, 23, 15, 28, 16)
+    },
+    32: {
+        "L": (1955, 30, 17, 115, 0, 0),
+        "M": (1541, 28, 10, 46, 23, 47),
+        "Q": (1115, 30, 10, 24, 35, 25),
+        "H": (845, 30, 19, 15, 35, 16)
+    },
+    33: {
+        "L": (2071, 30, 17, 115, 1, 116),
+        "M": (1631, 28, 14, 46, 21, 47),
+        "Q": (1171, 30, 29, 24, 19, 25),
+        "H": (901, 30, 11, 15, 46, 16)
+    },
+    34: {
+        "L": (2191, 30, 13, 115, 6, 116),
+        "M": (1725, 28, 14, 46, 23, 47),
+        "Q": (1231, 30, 44, 24, 7, 25),
+        "H": (961, 30, 59, 16, 1, 17)
+    },
+    35: {
+        "L": (2306, 30, 12, 121, 7, 122),
+        "M": (1812, 28, 12, 47, 26, 48),
+        "Q": (1286, 30, 39, 24, 14, 25),
+        "H": (986, 30, 22, 15, 41, 16)
+    },
+    36: {
+        "L": (2434, 30, 6, 121, 14, 122),
+        "M": (1914, 28, 6, 47, 34, 48),
+        "Q": (1354, 30, 46, 24, 10, 25),
+        "H": (1054, 30, 2, 15, 64, 16)
+    },
+    37: {
+        "L": (2566, 30, 17, 122, 4, 123),
+        "M": (1992, 28, 29, 46, 14, 47),
+        "Q": (1426, 30, 49, 24, 10, 25),
+        "H": (1096, 30, 24, 15, 46, 16)
+    },
+    38: {
+        "L": (2702, 30, 4, 122, 18, 123),
+        "M": (2102, 28, 13, 46, 32, 47),
+        "Q": (1502, 30, 48, 24, 14, 25),
+        "H": (1142, 30, 42, 15, 32, 16)
+    },
+    39: {
+        "L": (2812, 30, 20, 117, 4, 118),
+        "M": (2216, 28, 40, 47, 7, 48),
+        "Q": (1582, 30, 43, 24, 22, 25),
+        "H": (1222, 30, 10, 15, 67, 16)
+    },
+    40: {
+        "L": (2956, 30, 19, 118, 6, 119),
+        "M": (2334, 28, 18, 47, 31, 48),
+        "Q": (1666, 30, 34, 24, 34, 25),
+        "H": (1276, 30, 20, 15, 61, 16),
     }
 }
 
 
+class InvalidErrorCorrectionCode(Exception):
+    pass
+
+
+class InvalidErrorCorrectionVersion(Exception):
+    pass
+
+
 def get_required_length_of_ecc_block(version: int, ecc: str) -> int:
+    block = ECC_BLOCKS.get(version)
+    if block is None:
+        raise InvalidErrorCorrectionVersion(version)
+
+    ecc_block = block.get(ecc)
+    if ecc_block is None:
+        raise InvalidErrorCorrectionCode(ecc)
+
     return ECC_BLOCKS[version][ecc][0] * 8
