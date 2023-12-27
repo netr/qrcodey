@@ -2,7 +2,7 @@ import pytest
 
 from encoder import AlphanumericEncoder
 from polynomial import GeneratorPolynomial
-from qr import InvalidVersionNumber, QrCode, ALIGNMENT_PATTERN_LOCATIONS
+from qr import InvalidVersionNumber, QrCode, ALIGNMENT_PATTERN_LOCATIONS, InvalidMaskPatternId
 
 
 def test_get_module_size_from_version():
@@ -129,6 +129,7 @@ def test_add_timing_patterns():
 
 
 def test_draw():
+    pytest.skip("only used during development / debugging")
     version = 2
     qr = QrCode(version)
     qr.add_static_patterns()
@@ -137,23 +138,37 @@ def test_draw():
     poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
     data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
 
-    count = 0
-    rows, cols = len(qr.matrix), len(qr.matrix[0])
-    for r in range(rows):
-        for c in range(cols):
-            if qr.matrix[r][c] != 1:
-                count += 1
-
-    print("\n", count, (rows * cols), (rows * cols) - count)
     qr.add_encoded_data(data)
-
-    count = 0
-    for r in range(rows):
-        for c in range(cols):
-            if qr.matrix[r][c] != 1:
-                count += 1
-    print(count, (rows * cols), (rows * cols) - count)
     qr.add_reserve_modules(1)
     qr.add_timing_patterns()
-
     qr.draw()
+
+
+def test_apply_mask():
+    version = 2
+    qr = QrCode(version)
+    qr.add_static_patterns()
+
+    enc = AlphanumericEncoder.encode("HELLO WORLD")
+    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
+    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
+
+    qr.add_encoded_data(data)
+    qr.add_timing_patterns()
+    qr.add_dark_module()
+    qr.matrix = qr.apply_mask(5)
+    qr.draw()
+
+
+def test_apply_mask_should_error_with_invalid_number():
+    version = 2
+    qr = QrCode(version)
+    qr.add_static_patterns()
+
+    enc = AlphanumericEncoder.encode("HELLO WORLD")
+    poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
+    data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
+
+    qr.add_encoded_data(data)
+    with pytest.raises(InvalidMaskPatternId):
+        qr.matrix = qr.apply_mask(8)

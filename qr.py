@@ -1,3 +1,4 @@
+import math
 from typing import Tuple, List
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -91,6 +92,10 @@ class InvalidVersionNumber(Exception):
     pass
 
 
+class InvalidMaskPatternId(Exception):
+    pass
+
+
 class QrCode:
     """
     The QrCode class represents a QR code.
@@ -146,9 +151,9 @@ class QrCode:
         """
         self.add_finder_patterns()
         self.add_separators()
-        self.add_reserve_modules()
         self.add_alignment_patterns()
         self.add_timing_patterns()
+        self.add_reserve_modules()
         self.add_dark_module()
 
     def add_finder_patterns(self):
@@ -224,7 +229,7 @@ class QrCode:
 
     def add_reserve_modules(self, pixel=None):
         if pixel is None:
-            pixel = self.BLACK_MODULE
+            pixel = self.WHITE_MODULE
         for i in range(0, 8):
             self.matrix[8][i] = pixel
             self.matrix[8][len(self.matrix[0]) - i - 1] = pixel
@@ -354,6 +359,18 @@ class QrCode:
             except IndexError:
                 break
 
+    def apply_mask(self, pattern_id: int) -> List[List[int]]:
+        strategy = MaskStrategies().get(pattern_id)
+        if strategy is None:
+            raise InvalidMaskPatternId
+
+        masked = self.matrix[:]
+        for (r, c) in self.dataset:
+            if strategy(r, c):
+                masked[r][c] = self.WHITE_MODULE if masked[r][c] is self.BLACK_MODULE else self.BLACK_MODULE
+
+        return masked
+
     def _is_on_veritcal_timing(self, r, c):
         if r in range(self.FINDER_OFFSET + 1, len(self.matrix) - self.FINDER_OFFSET - 1):
             return c == self.FINDER_OFFSET - 1
@@ -368,3 +385,52 @@ class QrCode:
 
         # Display the image
         plt.show()
+
+
+class MaskStrategies:
+    def __init__(self):
+        self.strategies = {
+            0: self.pattern_0,
+            1: self.pattern_1,
+            2: self.pattern_2,
+            3: self.pattern_3,
+            4: self.pattern_4,
+            5: self.pattern_5,
+            6: self.pattern_6,
+            7: self.pattern_7,
+        }
+
+    def get(self, pattern_id: int):
+        return self.strategies.get(pattern_id)
+
+    @staticmethod
+    def pattern_0(r: int, c: int) -> bool:
+        return (r + c) % 2 == 0
+
+    @staticmethod
+    def pattern_1(r: int, c: int) -> bool:
+        return r % 2 == 0
+
+    @staticmethod
+    def pattern_2(r: int, c: int) -> bool:
+        return c % 3 == 0
+
+    @staticmethod
+    def pattern_3(r: int, c: int) -> bool:
+        return (r + c) % 3 == 0
+
+    @staticmethod
+    def pattern_4(r: int, c: int) -> bool:
+        return ((r // 2) + (c // 3)) % 2 == 0
+
+    @staticmethod
+    def pattern_5(r: int, c: int) -> bool:
+        return ((r * c) % 2) + ((r * c) % 3) == 0
+
+    @staticmethod
+    def pattern_6(r: int, c: int) -> bool:
+        return (((r * c) % 2) + ((r * c) % 3)) % 2 == 0
+
+    @staticmethod
+    def pattern_7(r: int, c: int) -> bool:
+        return (((r + c) % 2) + ((r * c) % 3)) % 2 == 0
