@@ -125,6 +125,7 @@ class QrCode:
         self._version = version
         self._modules = self.get_module_size()
         self.matrix = [[self.EMPTY_MODULE] * self._modules for _ in range(self._modules)]
+        self.dataset = set()
 
     def get_module_size(self) -> int:
         """
@@ -310,6 +311,7 @@ class QrCode:
         for i, ch in enumerate(encoded_string):
             module = self.WHITE_MODULE if ch == '0' else self.BLACK_MODULE
             self.matrix[r][c] = module
+            self.dataset.add((r, c))
 
             try:
                 while self._is_module_filled(r, c):
