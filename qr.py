@@ -283,6 +283,11 @@ class QrCode:
         for c in range(self.FINDER_OFFSET + 1, len(self.matrix[0]) - self.FINDER_OFFSET - 1):
             self.matrix[self.FINDER_OFFSET - 1][c] = self.BLACK_MODULE if c % 2 == 0 else self.WHITE_MODULE
 
+    def is_on_veritcal_timing(self, r, c):
+        if r in range(self.FINDER_OFFSET + 1, len(self.matrix) - self.FINDER_OFFSET - 1):
+            return c == self.FINDER_OFFSET - 1
+        return False
+
     def add_dark_module(self):
         r, c = ((self.MODULES_INCREMENT * self._version) + 9, 8)
         self.matrix[r][c] = self.BLACK_MODULE
@@ -296,7 +301,7 @@ class QrCode:
         :param encoded_string:
         :return:
         """
-        
+
         ORDER_UP, ORDER_DOWN = 1, -1
         ROWS, COLS = len(self.matrix[0]), len(self.matrix)
         # start at the bottom left of the matrix
@@ -342,6 +347,10 @@ class QrCode:
                         switch_row = False
                         r = ROWS - 1
                         c -= 2
+
+                    # fixes the issue of modules being upside down when touching the vertical timing line
+                    if self.is_on_veritcal_timing(r, c):
+                        c -= 1
 
             except IndexError:
                 break
