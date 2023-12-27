@@ -108,11 +108,12 @@ class AlphanumericEncoder:
 
         # terminator zeros (up to 4 zeros if padding is required)
         min_length = 128
-        min_length_padding = cls.pad_to_minimum_length(encoded_string, min_length)
+        terminator_zeros = cls.pad_terminator_zeros(encoded_string)
+        encoded_string += terminator_zeros
 
         # pad zeros until current string len is a multiple of 8
         modulus_padding = cls.pad_to_modulus_eight(encoded_string)
-        encoded_string += min_length_padding + modulus_padding
+        encoded_string += modulus_padding
 
         # pad final alternating bytes of 0xEC and 0x11 to the end of encoded string
         encoded_string = cls.pad_remaining_bytes(encoded_string, min_length)
@@ -136,14 +137,17 @@ class AlphanumericEncoder:
         return "{0:b}".format(len(text)).rjust(9, "0")
 
     @staticmethod
-    def pad_to_minimum_length(encoded_string: str, min_length: int) -> str:
-        if len(encoded_string) < min_length:
-            return "0" * min(min_length - len(encoded_string), 4)
-        return ""
+    def pad_terminator_zeros(encoded_string: str) -> str:
+        rem = len(encoded_string) % 8
+        return "0" * min(rem, 4)
 
     @staticmethod
     def pad_to_modulus_eight(encoded_string: str) -> str:
         remaining_slots_to_modulus_eight = len(encoded_string) % 8
+        if remaining_slots_to_modulus_eight > 0:
+            # we need to invert the remainer to get amount of zeros required to fill
+            remaining_slots_to_modulus_eight = 8 - remaining_slots_to_modulus_eight
+
         return "0" * remaining_slots_to_modulus_eight
 
     @staticmethod

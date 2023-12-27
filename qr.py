@@ -158,6 +158,7 @@ def encode_data(data: str) -> str:
     enc = AlphanumericEncoder.encode(data)
     poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
     data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
+
     return data
 
 

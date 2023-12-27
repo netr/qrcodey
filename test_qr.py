@@ -2,7 +2,8 @@ import pytest
 
 from encoder import AlphanumericEncoder
 from polynomial import GeneratorPolynomial
-from qr import InvalidVersionNumber, QrCode, InvalidMaskPatternId, PenaltyEvaluator, choose_qr_version, make
+from qr import InvalidVersionNumber, QrCode, InvalidMaskPatternId, PenaltyEvaluator, choose_qr_version, make, \
+    encode_data
 
 
 def test_get_module_size_from_version():
@@ -14,9 +15,20 @@ def test_get_module_size_from_version():
 
 
 def test_generate_new_qr_code():
-    qr = make("HELLO CC WORLDS")
+    qr = make("HELLO CC WORLDSSSSS")
     qr.draw()
     qr.save("testing.png", scale=1)
+
+
+def test_encode_data():
+    enc = encode_data("HELLO CC WORLDSS")
+    assert len(enc) == 359
+
+    enc = encode_data("HELLO CC WORLDSSSSS")
+    assert len(enc) == 359
+
+    enc = encode_data("HELLO CC WORLDSSSSSS")
+    assert len(enc) == 359
 
 
 def test_generate_base_matrix_with_finder_patterns_and_separators():
@@ -218,14 +230,14 @@ def qrcode_mock() -> QrCode:
 
 def qrcode_mock_with_data() -> QrCode:
     qr = qrcode_mock()
-    data = encoded_data()
+    data = encoded_data_mock()
     qr.add_encoded_data(data)
     qr.add_timing_patterns()
     qr.add_dark_module()
     return qr
 
 
-def encoded_data() -> str:
+def encoded_data_mock() -> str:
     enc = AlphanumericEncoder.encode("HELLO WORLD")
     poly = GeneratorPolynomial(28).divide(AlphanumericEncoder.get_8bit_binary_numbers(enc))
     data = enc + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
