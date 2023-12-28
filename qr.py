@@ -46,8 +46,6 @@ def encode_data(data: str, ecc: str = "H") -> str:
         + "".join(DataEncoder.get_8bit_binary_numbers_from_list(poly))
         + "0" * REMAINING_BITS.get(version)
     )
-    print(data)
-
     return data
 
 
@@ -98,14 +96,6 @@ class QrCode:
         self._encoding_mode = DataEncoder.get_encoding_mode(data)
         self._version = choose_qr_version(len(data), ecc, self._encoding_mode)
         self._modules = self.get_module_size()
-        print(
-            "encoding_mode",
-            self._encoding_mode,
-            "version",
-            self._version,
-            "modules",
-            self._modules,
-        )
         self._dataset = set()
         self.matrix = [
             [self.EMPTY_MODULE] * self._modules for _ in range(self._modules)
@@ -389,7 +379,8 @@ class QrCode:
         if strategy is None:
             raise InvalidMaskPatternId
 
-        masked = deepcopy(self.matrix)
+        # create a deep copy of inner matrix to allow for multiple mask attempts
+        masked = [row[:] for row in self.matrix]
         for r, c in self._dataset:
             if strategy(r, c):
                 masked[r][c] = (
@@ -467,7 +458,6 @@ class QrCode:
         :return: New matrix object with best fit mask and format strings
         """
         mask = self.find_best_mask(ecc)
-        print("mask", mask, "ecc", ecc)
         matrix = self.apply_mask(mask)
         matrix = self.add_format_string(matrix, ecc, mask)
         return matrix

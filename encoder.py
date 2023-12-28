@@ -116,7 +116,6 @@ class DataEncoder:
             case Mode.BYTE:
                 encoded_string = ModeInidicators.BYTE.value
                 encoding_chunks = cls._encode_bytes(text)
-                print(encoding_chunks)
 
         # set mode indicator and character length
         encoded_string += cls.get_character_count_indicator(text, ecc, encoding_mode)
