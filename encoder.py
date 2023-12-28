@@ -148,6 +148,38 @@ class DataEncoder:
         return [format(ord(char), "08b") for char in text]
 
     @staticmethod
+    def _encode_numeric(text: str) -> List[str]:
+        """
+        Convert the bytes into an 8-bit binary string.
+        Pad on the left with 0s if necessary to make each one 8-bits long.
+        """
+        enc = []
+        splits = [text[i : i + 3] for i in range(0, len(text), 3)]
+        for s in splits:
+            fmt = ""
+            # If the final group consists of only two digits, you should convert it to 7 binary bits, and if the
+            # final group consists of only one digit, you should convert it to 4 binary bits.
+
+            if len(s) == 3:
+                fmt = format(int(s), "010b")
+            elif len(s) == 2:
+                fmt = format(int(s), "07b")
+            elif len(s) == 1:
+                fmt = format(int(s), "04b")
+
+            # If a group starts with a zero, it should be interpreted as a two-digit number and you should convert it
+            # to 7 binary bits, and if there are two zeroes at the beginning of a group, it should be interpreted as
+            # a one-digit number and you should convert it to 4 binary bits.
+
+            if s[:1] == "00":
+                fmt = format(int(s), "04b")
+            elif s[0] == "0":
+                fmt = format(int(s), "07b")
+
+            enc.append(fmt)
+        return enc
+
+    @staticmethod
     def get_character_count_indicator(text: str):
         version = choose_qr_version(len(text), Mode.ALPHANUMERIC.value)
         width = 0

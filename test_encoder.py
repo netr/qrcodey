@@ -59,6 +59,14 @@ def test_byte_encoding():
     assert DataEncoder._encode_bytes("Hello, world!") == expected
 
 
+def test_numeric_encoding():
+    assert DataEncoder._encode_numeric("8675309") == [
+        "1101100011",
+        "1000010010",
+        "1001",
+    ]
+
+
 def test_get_8bit_binary_numbers_from_list():
     expected = ["01000101", "11110010", "00010001", "10101011"]
     assert DataEncoder.get_8bit_binary_numbers_from_list([69, 242, 17, 171]) == expected
