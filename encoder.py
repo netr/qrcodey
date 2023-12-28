@@ -10,6 +10,7 @@ ALPHANUMERIC_CHARS: str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: "
 # codewords. There are four parts to the encoded data: the mode indicator, the character count indicator, the encoded
 # payload, and extra padding.
 
+
 class ModeInidicators(Enum):
     NUMERIC: str = "0001"
     ALPHANUMERIC: str = "0010"
@@ -30,6 +31,7 @@ class InvalidAlphanumericCharacter(Exception):
     Attributes:
         char -- `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: `
     """
+
     pass
 
 
@@ -46,28 +48,28 @@ class AlphanumericPair:
         if ch == "":
             return -1
 
-        if ord('0') <= ord(ch) <= ord('9'):
+        if ord("0") <= ord(ch) <= ord("9"):
             return int(ch)
-        elif ord('A') <= ord(ch) <= ord('Z'):
-            return ord(ch) - ord('A') + 10
+        elif ord("A") <= ord(ch) <= ord("Z"):
+            return ord(ch) - ord("A") + 10
 
-        if ch == ' ':
+        if ch == " ":
             return 36
-        if ch == '$':
+        if ch == "$":
             return 37
-        if ch == '%':
+        if ch == "%":
             return 38
-        if ch == '*':
+        if ch == "*":
             return 39
-        if ch == '+':
+        if ch == "+":
             return 40
-        if ch == '-':
+        if ch == "-":
             return 41
-        if ch == '.':
+        if ch == ".":
             return 42
-        if ch == '/':
+        if ch == "/":
             return 43
-        if ch == ':':
+        if ch == ":":
             return 44
 
         return -1
@@ -97,8 +99,7 @@ class AlphanumericPair:
         return value
 
 
-class AlphanumericEncoder:
-
+class DataEncoder:
     @classmethod
     def encode(cls, text: str, version: int, ecc: str) -> str:
         # set mode indicator and character length
@@ -106,7 +107,7 @@ class AlphanumericEncoder:
         encoded_string += cls.get_character_count_indicator(text)
 
         # encode each set of pairs and join into a string
-        encs = cls._encode_pairs(text)
+        encs = cls._encode_alphanumeric_pairs(text)
         encoded_string += "".join(encs)
 
         # terminator zeros (up to 4 zeros if padding is required)
@@ -127,7 +128,7 @@ class AlphanumericEncoder:
         return encoded_string
 
     @staticmethod
-    def _encode_pairs(text) -> List[str]:
+    def _encode_alphanumeric_pairs(text: str) -> List[str]:
         encs = []
         for i in range(0, len(text), 2):
             if i + 1 < len(text):
@@ -137,6 +138,14 @@ class AlphanumericEncoder:
 
             encs.append(pair.encode())
         return encs
+
+    @staticmethod
+    def _encode_bytes(text: str) -> List[str]:
+        """
+        Convert the bytes into an 8-bit binary string.
+        Pad on the left with 0s if necessary to make each one 8-bits long.
+        """
+        return [format(ord(char), "08b") for char in text]
 
     @staticmethod
     def get_character_count_indicator(text: str):
@@ -170,7 +179,7 @@ class AlphanumericEncoder:
         Alternate between adding 0xEC (11101100) and 0x11 (00010001) to the end of the encoded data until it reaches
         the required length.
         """
-        remaining_zero_slots = ((required_length - len(encoded_string)) // 8)
+        remaining_zero_slots = (required_length - len(encoded_string)) // 8
         for r in range(remaining_zero_slots):
             encoded_string += "11101100" if r % 2 == 0 else "00010001"
         return encoded_string
@@ -179,7 +188,7 @@ class AlphanumericEncoder:
     def get_8bit_binary_numbers(encoded_string: str) -> List[int]:
         nums: List[int] = []
         for i in range(0, len(encoded_string), 8):
-            nums.append(int(encoded_string[i:i + 8], 2))
+            nums.append(int(encoded_string[i : i + 8], 2))
         return nums
 
     @staticmethod

@@ -6,8 +6,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
-from const import FORMAT_STRINGS, ALIGNMENT_PATTERN_LOCATIONS, Mode
-from encoder import AlphanumericEncoder
+from const import (
+    FORMAT_STRINGS,
+    ALIGNMENT_PATTERN_LOCATIONS,
+    Mode,
+    REMAINING_BITS,
+    get_ec_codewords_per_block,
+)
+from encoder import DataEncoder
 from polynomial import GeneratorPolynomial
 from util import choose_qr_version
 
@@ -26,14 +32,18 @@ class InvalidMaskPatternId(Exception):
 
 
 def encode_data(data: str) -> str:
-    enc = AlphanumericEncoder.encode(data, 2, "H")
-    poly = GeneratorPolynomial(28).divide(
-        AlphanumericEncoder.get_8bit_binary_numbers(enc)
+    version = 2
+    ecc = "H"
+
+    enc = DataEncoder.encode(data, version, ecc)
+    per_block = get_ec_codewords_per_block(version, ecc)
+    poly = GeneratorPolynomial(per_block).divide(
+        DataEncoder.get_8bit_binary_numbers(enc)
     )
     data = (
         enc
-        + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly))
-        + "0000000"
+        + "".join(DataEncoder.get_8bit_binary_numbers_from_list(poly))
+        + "0" * REMAINING_BITS.get(version)
     )
 
     return data

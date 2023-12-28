@@ -1,4 +1,4 @@
-from encoder import AlphanumericEncoder
+from encoder import DataEncoder
 from polynomial import GeneratorPolynomial
 
 
@@ -16,13 +16,11 @@ def test_divide_generator_with_message():
         "0010000001011011000010110111100011010001011100101101110001001101"
         "0100001101000000111011000001000111101100000100011110110000010001"
     )
-    ans = GeneratorPolynomial(10) / AlphanumericEncoder.get_8bit_binary_numbers(data)
+    ans = GeneratorPolynomial(10) / DataEncoder.get_8bit_binary_numbers(data)
     assert ans == expected
 
-    ans = GeneratorPolynomial(10).divide(
-        AlphanumericEncoder.get_8bit_binary_numbers(data)
-    )
+    ans = GeneratorPolynomial(10).divide(DataEncoder.get_8bit_binary_numbers(data))
     assert ans == expected
 
-    ans = GeneratorPolynomial(28) / AlphanumericEncoder.get_8bit_binary_numbers(data)
+    ans = GeneratorPolynomial(28) / DataEncoder.get_8bit_binary_numbers(data)
     assert len(ans) == 28

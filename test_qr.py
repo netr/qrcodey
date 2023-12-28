@@ -1,6 +1,6 @@
 import pytest
 
-from encoder import AlphanumericEncoder
+from encoder import DataEncoder
 from polynomial import GeneratorPolynomial
 from qr import (
     InvalidVersionNumber,
@@ -253,13 +253,9 @@ def qrcode_mock_with_data() -> QrCode:
 
 
 def encoded_data_mock() -> str:
-    enc = AlphanumericEncoder.encode("HELLO WORLD", 2, "H")
-    poly = GeneratorPolynomial(28).divide(
-        AlphanumericEncoder.get_8bit_binary_numbers(enc)
-    )
+    enc = DataEncoder.encode("HELLO WORLD", 2, "H")
+    poly = GeneratorPolynomial(28).divide(DataEncoder.get_8bit_binary_numbers(enc))
     data = (
-        enc
-        + "".join(AlphanumericEncoder.get_8bit_binary_numbers_from_list(poly))
-        + "0000000"
+        enc + "".join(DataEncoder.get_8bit_binary_numbers_from_list(poly)) + "0000000"
     )
     return data
