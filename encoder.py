@@ -118,7 +118,7 @@ class DataEncoder:
                 encoding_chunks = cls._encode_bytes(text)
 
         # set mode indicator and character length
-        encoded_string += cls.get_character_count_indicator(text, encoding_mode)
+        encoded_string += cls.get_character_count_indicator(text, ecc, encoding_mode)
         encoded_string += "".join(encoding_chunks)
 
         # terminator zeros (up to 4 zeros if padding is required)
@@ -202,8 +202,8 @@ class DataEncoder:
         return enc
 
     @staticmethod
-    def get_character_count_indicator(text: str, mode: Mode):
-        version = choose_qr_version(len(text), mode.value)
+    def get_character_count_indicator(text: str, ecc: str, mode: Mode):
+        version = choose_qr_version(len(text), ecc, mode)
         width = 0
         if 1 <= version <= 9:
             width = 9

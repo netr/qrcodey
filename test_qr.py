@@ -15,7 +15,7 @@ from qr import (
 
 def test_get_module_size_from_version():
     assert QrCode("A").get_module_size() == 21
-    assert QrCode("A" * 2331).get_module_size() == 177
+    assert QrCode("A" * 1852).get_module_size() == 177
 
     with pytest.raises(InvalidVersionNumber) as ex:
         QrCode("").get_module_size()
@@ -80,7 +80,7 @@ def test_get_alignment_center_points():
     assert alignments == [(18, 18)]
 
     # version 8 starts at 123 characters
-    alignments = QrCode("A" * 123).get_alignment_center_points()
+    alignments = QrCode("A" * 122, "H").get_alignment_center_points()
     assert alignments == [(6, 24), (24, 6), (24, 24), (24, 42), (42, 24), (42, 42)]
 
 

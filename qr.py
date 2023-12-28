@@ -91,9 +91,9 @@ class QrCode:
     EMPTY_MODULE = 1
     WHITE_MODULE = 2
 
-    def __init__(self, data: str):
+    def __init__(self, data: str, ecc: str = "H"):
         self._rawdata = data
-        self._version = choose_qr_version(len(data), Mode.ALPHANUMERIC.value)
+        self._version = choose_qr_version(len(data), ecc, Mode.ALPHANUMERIC)
         self._modules = self.get_module_size()
         self._dataset = set()
         self.matrix = [
