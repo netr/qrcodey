@@ -1,4 +1,5 @@
 import math
+from copy import copy, deepcopy
 from pathlib import Path
 from typing import Tuple, List
 
@@ -45,6 +46,7 @@ def encode_data(data: str, ecc: str = "H") -> str:
         + "".join(DataEncoder.get_8bit_binary_numbers_from_list(poly))
         + "0" * REMAINING_BITS.get(version)
     )
+    print(data)
 
     return data
 
@@ -387,7 +389,7 @@ class QrCode:
         if strategy is None:
             raise InvalidMaskPatternId
 
-        masked = self.matrix[:]
+        masked = deepcopy(self.matrix)
         for r, c in self._dataset:
             if strategy(r, c):
                 masked[r][c] = (

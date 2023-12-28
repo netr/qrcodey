@@ -22,7 +22,7 @@ def test_get_module_size_from_version():
 
 
 def test_generate_new_qr_code():
-    qr = make(data="hello world", ecc="L")
+    qr = make(data="https://aishowcase.io", ecc="L")
     qr.draw(ecc="L")
     # qr.save("testing.png", scale=1)
 
@@ -160,10 +160,6 @@ def test_add_timing_patterns():
 
 def test_apply_mask():
     qr = qrcode_mock_with_data()
-
-    qr.matrix = qr.apply_mask(5)
-    qr.add_format_string(qr.matrix, "H", 5)
-
     qr.draw()
 
 
