@@ -27,7 +27,9 @@ def test_get_8bit_binary_numbers():
 
 def test_get_character_count_indicator():
     assert (
-        DataEncoder.get_character_count_indicator("HELLO WORLD", "Q", Mode.ALPHANUMERIC)
+        DataEncoder._get_character_count_indicator(
+            "HELLO WORLD", "Q", Mode.ALPHANUMERIC
+        )
         == "000001011"
     )
 
@@ -42,6 +44,15 @@ def test_get_pair_value():
     assert AlphanumericPair("H", "E").get_pair_value() == 779
     assert AlphanumericPair(":", ":").get_pair_value() == 2024
     assert AlphanumericPair("D", "").get_pair_value() == 13
+
+
+def test_get_encoding_mode():
+    assert DataEncoder.get_encoding_mode("12345") == Mode.NUMERIC
+    assert DataEncoder.get_encoding_mode("https://www.google.com") == Mode.BYTE
+    assert (
+        DataEncoder.get_encoding_mode("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: ")
+        == Mode.ALPHANUMERIC
+    )
 
 
 def test_byte_encoding():

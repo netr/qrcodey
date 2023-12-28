@@ -102,15 +102,15 @@ class DataEncoder:
         encoded_string = indicator
 
         # set mode indicator and character length
-        encoded_string += cls.get_character_count_indicator(text, ecc, encoding_mode)
+        encoded_string += cls._get_character_count_indicator(text, ecc, encoding_mode)
         encoded_string += "".join(chunks)
 
         # terminator zeros (up to 4 zeros if padding is required)
-        terminator_zeros = cls.pad_terminator_zeros(encoded_string)
+        terminator_zeros = cls._pad_terminator_zeros(encoded_string)
         encoded_string += terminator_zeros
 
         # pad zeros until current string len is a multiple of 8
-        modulus_padding = cls.pad_to_modulus_eight(encoded_string)
+        modulus_padding = cls._pad_to_modulus_eight(encoded_string)
         encoded_string += modulus_padding
 
         # https://www.thonky.com/qr-code-tutorial/error-correction-table
@@ -118,7 +118,7 @@ class DataEncoder:
         required_length = get_required_length_of_ecc_block(version, ecc)
 
         # pad final alternating bytes of 0xEC and 0x11 to the end of encoded string
-        encoded_string = cls.pad_remaining_bytes(encoded_string, required_length)
+        encoded_string = cls._pad_remaining_bytes(encoded_string, required_length)
 
         return encoded_string
 
@@ -212,7 +212,7 @@ class DataEncoder:
         return enc
 
     @staticmethod
-    def get_character_count_indicator(text: str, ecc: str, mode: Mode):
+    def _get_character_count_indicator(text: str, ecc: str, mode: Mode):
         version = choose_qr_version(len(text), ecc, mode)
         width = 0
         if 1 <= version <= 9:
@@ -242,12 +242,12 @@ class DataEncoder:
         return "{0:b}".format(len(text)).rjust(width, "0")
 
     @staticmethod
-    def pad_terminator_zeros(encoded_string: str) -> str:
+    def _pad_terminator_zeros(encoded_string: str) -> str:
         rem = len(encoded_string) % 8
         return "0" * min(rem, 4)
 
     @staticmethod
-    def pad_to_modulus_eight(encoded_string: str) -> str:
+    def _pad_to_modulus_eight(encoded_string: str) -> str:
         remaining_slots_to_modulus_eight = len(encoded_string) % 8
         if remaining_slots_to_modulus_eight > 0:
             # we need to invert the remainer to get amount of zeros required to fill
@@ -256,7 +256,7 @@ class DataEncoder:
         return "0" * remaining_slots_to_modulus_eight
 
     @staticmethod
-    def pad_remaining_bytes(encoded_string: str, required_length: int) -> str:
+    def _pad_remaining_bytes(encoded_string: str, required_length: int) -> str:
         """
         Alternate between adding 0xEC (11101100) and 0x11 (00010001) to the end of the encoded data until it reaches
         the required length.
