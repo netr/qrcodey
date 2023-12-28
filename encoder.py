@@ -124,6 +124,16 @@ class DataEncoder:
 
     @classmethod
     def _get_indicator_and_encoded_chunks(cls, encoding_mode: Mode, text: str):
+        """
+        Get encoding mode indicator and the encoded bytes in 8 bit binary chunks.
+
+        :param encoding_mode: The encoding mode to be used for encoding the text.
+        :type encoding_mode: Mode
+        :param text: The text to be encoded.
+        :type text: str
+        :return: The encoded string and the encoding chunks.
+        :rtype: tuple[str, list]
+        """
         encoding_chunks = []
         encoded_string = ""
         match encoding_mode:
