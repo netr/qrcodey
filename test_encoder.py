@@ -1,3 +1,4 @@
+from const import Mode
 from encoder import DataEncoder, AlphanumericPair
 
 
@@ -25,7 +26,10 @@ def test_get_8bit_binary_numbers():
 
 
 def test_get_character_count_indicator():
-    assert DataEncoder.get_character_count_indicator("HELLO WORLD") == "000001011"
+    assert (
+        DataEncoder.get_character_count_indicator("HELLO WORLD", Mode.ALPHANUMERIC)
+        == "000001011"
+    )
 
 
 def test_alphanumeric_pair():

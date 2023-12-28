@@ -22,7 +22,7 @@ def test_get_module_size_from_version():
 
 
 def test_generate_new_qr_code():
-    qr = make("HELLO CC WORLDSSSSS")
+    qr = make("https://www.google.com")
     qr.draw()
     qr.save("testing.png", scale=1)
 

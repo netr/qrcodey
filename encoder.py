@@ -102,13 +102,24 @@ class AlphanumericPair:
 class DataEncoder:
     @classmethod
     def encode(cls, text: str, version: int, ecc: str) -> str:
-        # set mode indicator and character length
-        encoded_string = ModeInidicators.ALPHANUMERIC.value
-        encoded_string += cls.get_character_count_indicator(text)
+        # infer the encoding mode and get the respective indicator string and bit chunks
+        encoding_mode = cls._get_encoding_mode(text)
+        encoding_chunks = []
+        encoded_string = ""
+        match encoding_mode:
+            case Mode.NUMERIC:
+                encoded_string = ModeInidicators.NUMERIC.value
+                encoding_chunks = cls._encode_numeric(text)
+            case Mode.ALPHANUMERIC:
+                encoded_string = ModeInidicators.ALPHANUMERIC.value
+                encoding_chunks = cls._encode_alphanumeric_pairs(text)
+            case Mode.BYTE:
+                encoded_string = ModeInidicators.BYTE.value
+                encoding_chunks = cls._encode_bytes(text)
 
-        # encode each set of pairs and join into a string
-        encs = cls._encode_alphanumeric_pairs(text)
-        encoded_string += "".join(encs)
+        # set mode indicator and character length
+        encoded_string += cls.get_character_count_indicator(text, encoding_mode)
+        encoded_string += "".join(encoding_chunks)
 
         # terminator zeros (up to 4 zeros if padding is required)
         terminator_zeros = cls.pad_terminator_zeros(encoded_string)
@@ -126,6 +137,17 @@ class DataEncoder:
         encoded_string = cls.pad_remaining_bytes(encoded_string, required_length)
 
         return encoded_string
+
+    @staticmethod
+    def _get_encoding_mode(text: str) -> Mode:
+        if text.isdigit():
+            return Mode.NUMERIC
+
+        for ch in text:
+            if ch not in ALPHANUMERIC_CHARS:
+                return Mode.BYTE
+
+        return Mode.ALPHANUMERIC
 
     @staticmethod
     def _encode_alphanumeric_pairs(text: str) -> List[str]:
@@ -180,8 +202,8 @@ class DataEncoder:
         return enc
 
     @staticmethod
-    def get_character_count_indicator(text: str):
-        version = choose_qr_version(len(text), Mode.ALPHANUMERIC.value)
+    def get_character_count_indicator(text: str, mode: Mode):
+        version = choose_qr_version(len(text), mode.value)
         width = 0
         if 1 <= version <= 9:
             width = 9

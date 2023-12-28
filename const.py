@@ -131,48 +131,142 @@ FORMAT_STRINGS = {
     },
 }
 
-CAPACITY_TABLE = {
-    1: {Mode.NUMERIC.value: 34, Mode.ALPHANUMERIC.value: 14},
-    2: {Mode.NUMERIC.value: 63, Mode.ALPHANUMERIC.value: 26},
-    3: {Mode.NUMERIC.value: 101, Mode.ALPHANUMERIC.value: 42},
-    4: {Mode.NUMERIC.value: 149, Mode.ALPHANUMERIC.value: 62},
-    5: {Mode.NUMERIC.value: 202, Mode.ALPHANUMERIC.value: 84},
-    6: {Mode.NUMERIC.value: 255, Mode.ALPHANUMERIC.value: 106},
-    7: {Mode.NUMERIC.value: 293, Mode.ALPHANUMERIC.value: 122},
-    8: {Mode.NUMERIC.value: 365, Mode.ALPHANUMERIC.value: 152},
-    9: {Mode.NUMERIC.value: 432, Mode.ALPHANUMERIC.value: 180},
-    10: {Mode.NUMERIC.value: 513, Mode.ALPHANUMERIC.value: 213},
-    11: {Mode.NUMERIC.value: 604, Mode.ALPHANUMERIC.value: 251},
-    12: {Mode.NUMERIC.value: 691, Mode.ALPHANUMERIC.value: 287},
-    13: {Mode.NUMERIC.value: 796, Mode.ALPHANUMERIC.value: 331},
-    14: {Mode.NUMERIC.value: 871, Mode.ALPHANUMERIC.value: 362},
-    15: {Mode.NUMERIC.value: 991, Mode.ALPHANUMERIC.value: 412},
-    16: {Mode.NUMERIC.value: 1082, Mode.ALPHANUMERIC.value: 450},
-    17: {Mode.NUMERIC.value: 1212, Mode.ALPHANUMERIC.value: 504},
-    18: {Mode.NUMERIC.value: 1346, Mode.ALPHANUMERIC.value: 560},
-    19: {Mode.NUMERIC.value: 1500, Mode.ALPHANUMERIC.value: 624},
-    20: {Mode.NUMERIC.value: 1600, Mode.ALPHANUMERIC.value: 666},
-    21: {Mode.NUMERIC.value: 1708, Mode.ALPHANUMERIC.value: 711},
-    22: {Mode.NUMERIC.value: 1872, Mode.ALPHANUMERIC.value: 779},
-    23: {Mode.NUMERIC.value: 2059, Mode.ALPHANUMERIC.value: 857},
-    24: {Mode.NUMERIC.value: 2188, Mode.ALPHANUMERIC.value: 911},
-    25: {Mode.NUMERIC.value: 2395, Mode.ALPHANUMERIC.value: 997},
-    26: {Mode.NUMERIC.value: 2544, Mode.ALPHANUMERIC.value: 1059},
-    27: {Mode.NUMERIC.value: 2701, Mode.ALPHANUMERIC.value: 1125},
-    28: {Mode.NUMERIC.value: 2857, Mode.ALPHANUMERIC.value: 1190},
-    29: {Mode.NUMERIC.value: 3035, Mode.ALPHANUMERIC.value: 1264},
-    30: {Mode.NUMERIC.value: 3289, Mode.ALPHANUMERIC.value: 1370},
-    31: {Mode.NUMERIC.value: 3486, Mode.ALPHANUMERIC.value: 1452},
-    32: {Mode.NUMERIC.value: 3693, Mode.ALPHANUMERIC.value: 1538},
-    33: {Mode.NUMERIC.value: 3909, Mode.ALPHANUMERIC.value: 1628},
-    34: {Mode.NUMERIC.value: 4134, Mode.ALPHANUMERIC.value: 1722},
-    35: {Mode.NUMERIC.value: 4343, Mode.ALPHANUMERIC.value: 1809},
-    36: {Mode.NUMERIC.value: 4588, Mode.ALPHANUMERIC.value: 1911},
-    37: {Mode.NUMERIC.value: 4775, Mode.ALPHANUMERIC.value: 1989},
-    38: {Mode.NUMERIC.value: 5039, Mode.ALPHANUMERIC.value: 2099},
-    39: {Mode.NUMERIC.value: 5313, Mode.ALPHANUMERIC.value: 2213},
-    40: {Mode.NUMERIC.value: 5596, Mode.ALPHANUMERIC.value: 2331},
+capacity_data = {
+    1: {
+        "L": (41, 25, 17, 10),
+        "M": (34, 20, 14, 8),
+        "Q": (27, 16, 11, 7),
+        "H": (17, 10, 7, 4),
+    },
+    2: {
+        "L": (77, 47, 32, 20),
+        "M": (63, 38, 26, 16),
+        "Q": (48, 29, 20, 12),
+        "H": (34, 20, 14, 8),
+    },
+    3: {
+        "L": (127, 77, 53, 32),
+        "M": (101, 61, 42, 26),
+        "Q": (77, 47, 32, 20),
+        "H": (58, 35, 24, 15),
+    },
+    4: {
+        "L": (187, 114, 78, 48),
+        "M": (149, 90, 62, 38),
+        "Q": (111, 67, 46, 28),
+        "H": (82, 50, 34, 21),
+    },
+    5: {
+        "L": (255, 154, 106, 65),
+        "M": (202, 122, 84, 52),
+        "Q": (144, 87, 60, 37),
+        "H": (106, 64, 44, 27),
+    },
+    6: {
+        "L": (322, 195, 134, 82),
+        "M": (255, 154, 106, 65),
+        "Q": (178, 108, 74, 45),
+        "H": (139, 84, 58, 36),
+    },
+    7: {
+        "L": (370, 224, 154, 95),
+        "M": (293, 178, 122, 75),
+        "Q": (207, 125, 86, 53),
+        "H": (154, 93, 64, 39),
+    },
+    8: {
+        "L": (461, 279, 192, 118),
+        "M": (365, 221, 152, 93),
+        "Q": (259, 157, 108, 66),
+        "H": (202, 122, 84, 52),
+    },
+    9: {
+        "L": (552, 335, 230, 141),
+        "M": (432, 262, 180, 111),
+        "Q": (312, 189, 130, 80),
+        "H": (235, 143, 98, 60),
+    },
+    10: {
+        "L": (652, 395, 271, 167),
+        "M": (513, 311, 213, 131),
+        "Q": (364, 221, 151, 93),
+        "H": (288, 174, 119, 74),
+    },
+    # Versions 11 to 15
+    11: {
+        "L": (772, 468, 321, 198),
+        "M": (604, 366, 251, 155),
+        "Q": (427, 259, 177, 109),
+        "H": (331, 200, 137, 85),
+    },
+    12: {
+        "L": (883, 535, 367, 226),
+        "M": (691, 419, 287, 177),
+        "Q": (489, 296, 203, 125),
+        "H": (374, 227, 155, 96),
+    },
+    13: {
+        "L": (1022, 619, 425, 262),
+        "M": (796, 483, 331, 204),
+        "Q": (580, 352, 241, 149),
+        "H": (427, 259, 177, 109),
+    },
+    14: {
+        "L": (1101, 667, 458, 282),
+        "M": (871, 528, 362, 223),
+        "Q": (621, 376, 258, 159),
+        "H": (468, 283, 194, 120),
+    },
+    15: {
+        "L": (1250, 758, 520, 320),
+        "M": (991, 600, 412, 254),
+        "Q": (703, 426, 292, 180),
+        "H": (530, 321, 220, 136),
+    },
+    # Versions 16 to 20
+    16: {
+        "L": (1408, 854, 586, 361),
+        "M": (1082, 656, 450, 277),
+        "Q": (775, 470, 322, 198),
+        "H": (602, 365, 250, 154),
+    },
+    17: {
+        "L": (1548, 938, 644, 397),
+        "M": (1212, 734, 504, 310),
+        "Q": (876, 531, 364, 224),
+        "H": (674, 408, 280, 173),
+    },
+    18: {
+        "L": (1725, 1046, 718, 442),
+        "M": (1346, 816, 560, 345),
+        "Q": (948, 574, 394, 243),
+        "H": (746, 452, 310, 191),
+    },
+    19: {
+        "L": (1903, 1153, 792, 488),
+        "M": (1500, 909, 624, 384),
+        "Q": (1063, 644, 442, 272),
+        "H": (813, 493, 338, 208),
+    },
+    20: {
+        "L": (2061, 1249, 858, 528),
+        "M": (1600, 970, 666, 410),
+        "Q": (1159, 702, 482, 297),
+        "H": (919, 557, 382, 235),
+    },
 }
+
+CAPACITY_TABLE = {}
+for version, ec_levels in capacity_data.items():
+    CAPACITY_TABLE[version] = {}
+    for ec_level, capacities in ec_levels.items():
+        CAPACITY_TABLE[version][ec_level] = {
+            Mode.NUMERIC.value: capacities[0],
+            Mode.ALPHANUMERIC.value: capacities[1],
+            Mode.BYTE.value: capacities[2],
+            Mode.KANJI.value: capacities[3],
+        }
+
 
 GENERATOR_POLYNOMIALS = {
     7: [0, 87, 229, 146, 149, 238, 102, 21],
