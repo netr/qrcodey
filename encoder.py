@@ -103,7 +103,7 @@ class DataEncoder:
     @classmethod
     def encode(cls, text: str, version: int, ecc: str) -> str:
         # infer the encoding mode and get the respective indicator string and bit chunks
-        encoding_mode = cls._get_encoding_mode(text)
+        encoding_mode = cls.get_encoding_mode(text)
         encoding_chunks = []
         encoded_string = ""
         match encoding_mode:
@@ -139,7 +139,7 @@ class DataEncoder:
         return encoded_string
 
     @staticmethod
-    def _get_encoding_mode(text: str) -> Mode:
+    def get_encoding_mode(text: str) -> Mode:
         if text.isdigit():
             return Mode.NUMERIC
 

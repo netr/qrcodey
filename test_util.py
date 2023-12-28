@@ -18,6 +18,10 @@ def test_capacity_table_choose_version():
     assert choose_qr_version(5596, "M", Mode.NUMERIC) == 40
     assert choose_qr_version(2331, "Q", Mode.ALPHANUMERIC) == 40
 
+    # data="https://www.thonky.com/", ecc="M"
+    url = "https://www.thonky.com/"
+    assert choose_qr_version(len(url), "M", Mode.BYTE) == 2
+
     # Just Above Maximum Boundary
     assert choose_qr_version(5597, "Q", Mode.NUMERIC) is None
     assert choose_qr_version(2332, "H", Mode.ALPHANUMERIC) is None

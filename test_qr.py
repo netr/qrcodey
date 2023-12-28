@@ -22,9 +22,9 @@ def test_get_module_size_from_version():
 
 
 def test_generate_new_qr_code():
-    qr = make("https://www.google.com")
-    qr.draw()
-    qr.save("testing.png", scale=1)
+    qr = make(data="hello world", ecc="L")
+    qr.draw(ecc="L")
+    # qr.save("testing.png", scale=1)
 
 
 def test_encode_data():
@@ -39,7 +39,7 @@ def test_encode_data():
 
 
 def test_generate_base_matrix_with_finder_patterns_and_separators():
-    qr = QrCode("HELLO CC WORLD!")  # version 2
+    qr = QrCode("HELLO CC WORLD")  # version 2
     qr.add_finder_patterns()
     qr.add_separators()
 
@@ -76,7 +76,7 @@ def test_generate_base_matrix_with_finder_patterns_and_separators():
 
 def test_get_alignment_center_points():
     # version 2 starts at 15 characters
-    alignments = QrCode("HELLO CC WORLD!").get_alignment_center_points()
+    alignments = QrCode("HELLO CC WORLD", "H").get_alignment_center_points()
     assert alignments == [(18, 18)]
 
     # version 8 starts at 123 characters
@@ -85,7 +85,7 @@ def test_get_alignment_center_points():
 
 
 def test_draw_alignment():
-    qr = QrCode("HELLO CC WORLD!")  # version 2
+    qr = QrCode("HELLO CC WORLD")  # version 2
     qr.add_finder_patterns()
     qr.add_separators()
     qr.add_alignment_patterns()
@@ -122,7 +122,7 @@ def test_draw_alignment():
 
 
 def test_add_timing_patterns():
-    qr = QrCode("HELLO CC WORLD!")  # version 2
+    qr = QrCode("HELLO CC WORLD")  # version 2
     qr.add_finder_patterns()
     qr.add_separators()
     qr.add_timing_patterns()
@@ -202,7 +202,7 @@ def test_apply_mask_should_error_with_invalid_number():
 
 
 def test_add_format_string():
-    qr = QrCode("HELLO CC WORLD!")  # version 2
+    qr = QrCode("HELLO CC WORLD")  # version 2
     qr.add_format_string(qr.matrix, "Q", 5)
     # 01000011 0000011
 
@@ -238,7 +238,7 @@ def test_add_format_string():
 
 
 def qrcode_mock() -> QrCode:
-    qr = QrCode("HELLO CC WORLD!")  # version 2
+    qr = QrCode("HELLO CC WORLD")  # version 2
     qr.add_static_patterns()
     return qr
 

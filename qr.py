@@ -31,9 +31,9 @@ class InvalidMaskPatternId(Exception):
     pass
 
 
-def encode_data(data: str) -> str:
-    version = 2
-    ecc = "H"
+def encode_data(data: str, ecc: str = "H") -> str:
+    encoding_mode = DataEncoder.get_encoding_mode(data)
+    version = choose_qr_version(len(data), ecc, encoding_mode)
 
     enc = DataEncoder.encode(data, version, ecc)
     per_block = get_ec_codewords_per_block(version, ecc)
@@ -49,10 +49,10 @@ def encode_data(data: str) -> str:
     return data
 
 
-def make(data: str):
-    qr = QrCode(data)
+def make(data: str, ecc: str = "M"):
+    qr = QrCode(data, ecc)
     qr.add_static_patterns()
-    qr.add_encoded_data(encode_data(data))
+    qr.add_encoded_data(encode_data(data, ecc))
     qr.add_dark_module()
 
     return qr
@@ -93,7 +93,8 @@ class QrCode:
 
     def __init__(self, data: str, ecc: str = "H"):
         self._rawdata = data
-        self._version = choose_qr_version(len(data), ecc, Mode.ALPHANUMERIC)
+        self._encoding_mode = DataEncoder.get_encoding_mode(data)
+        self._version = choose_qr_version(len(data), ecc, self._encoding_mode)
         self._modules = self.get_module_size()
         self._dataset = set()
         self.matrix = [
@@ -456,6 +457,7 @@ class QrCode:
         :return: New matrix object with best fit mask and format strings
         """
         mask = self.find_best_mask(ecc)
+        print("mask", mask, "ecc", ecc)
         matrix = self.apply_mask(mask)
         matrix = self.add_format_string(matrix, ecc, mask)
         return matrix
