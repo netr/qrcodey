@@ -206,11 +206,29 @@ class DataEncoder:
         version = choose_qr_version(len(text), ecc, mode)
         width = 0
         if 1 <= version <= 9:
-            width = 9
+            match mode:
+                case Mode.NUMERIC:
+                    width = 10
+                case Mode.ALPHANUMERIC:
+                    width = 9
+                case Mode.BYTE:
+                    width = 8
         elif 10 <= version <= 26:
-            width = 11
+            match mode:
+                case Mode.NUMERIC:
+                    width = 12
+                case Mode.ALPHANUMERIC:
+                    width = 11
+                case Mode.BYTE:
+                    width = 16
         elif 27 <= version:
-            width = 13
+            match mode:
+                case Mode.NUMERIC:
+                    width = 14
+                case Mode.ALPHANUMERIC:
+                    width = 13
+                case Mode.BYTE:
+                    width = 16
         return "{0:b}".format(len(text)).rjust(width, "0")
 
     @staticmethod

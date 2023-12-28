@@ -37,4 +37,7 @@ class GaloisField:
 
     @staticmethod
     def get_log(num: int) -> int:
-        return GaloisField.get_log_table()[num]
+        try:
+            return GaloisField.get_log_table()[num]
+        except KeyError:
+            return 0

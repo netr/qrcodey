@@ -902,25 +902,25 @@ class InvalidErrorCorrectionVersion(Exception):
     pass
 
 
-def get_required_length_of_ecc_block(version: int, ecc: str) -> int:
-    block = ECC_BLOCKS.get(version)
+def get_required_length_of_ecc_block(qr_version: int, ecc: str) -> int:
+    block = ECC_BLOCKS.get(qr_version)
     if block is None:
-        raise InvalidErrorCorrectionVersion(version)
+        raise InvalidErrorCorrectionVersion(qr_version)
 
     ecc_block = block.get(ecc)
     if ecc_block is None:
         raise InvalidErrorCorrectionCode(ecc)
 
-    return ECC_BLOCKS[version][ecc][0] * 8
+    return ECC_BLOCKS[qr_version][ecc][0] * 8
 
 
-def get_ec_codewords_per_block(version: int, ecc: str) -> int:
-    block = ECC_BLOCKS.get(version)
+def get_ec_codewords_per_block(qr_version: int, ecc: str) -> int:
+    block = ECC_BLOCKS.get(qr_version)
     if block is None:
-        raise InvalidErrorCorrectionVersion(version)
+        raise InvalidErrorCorrectionVersion(qr_version)
 
     ecc_block = block.get(ecc)
     if ecc_block is None:
         raise InvalidErrorCorrectionCode(ecc)
 
-    return ECC_BLOCKS[version][ecc][1]
+    return ECC_BLOCKS[qr_version][ecc][1]

@@ -49,7 +49,7 @@ def encode_data(data: str, ecc: str = "H") -> str:
     return data
 
 
-def make(data: str, ecc: str = "M"):
+def make(data: str, ecc: str):
     qr = QrCode(data, ecc)
     qr.add_static_patterns()
     qr.add_encoded_data(encode_data(data, ecc))
@@ -96,6 +96,14 @@ class QrCode:
         self._encoding_mode = DataEncoder.get_encoding_mode(data)
         self._version = choose_qr_version(len(data), ecc, self._encoding_mode)
         self._modules = self.get_module_size()
+        print(
+            "encoding_mode",
+            self._encoding_mode,
+            "version",
+            self._version,
+            "modules",
+            self._modules,
+        )
         self._dataset = set()
         self.matrix = [
             [self.EMPTY_MODULE] * self._modules for _ in range(self._modules)
@@ -547,11 +555,6 @@ class MaskStrategies:
 
 
 class PenaltyEvaluator:
-    def __init__(self):
-        self.conditions = {
-            1: self._evaluate_1,
-        }
-
     def evaluate(self, matrix: List[List[int]]) -> int:
         score = 0
         score += self._evaluate_1(matrix)
