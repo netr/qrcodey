@@ -1,14 +1,10 @@
 from enum import Enum
-from typing import List
+from typing import List, Set
 
 from const import get_required_length_of_ecc_block, Mode
 from util import choose_qr_version
 
-ALPHANUMERIC_CHARS: str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: "
-
-
-# codewords. There are four parts to the encoded data: the mode indicator, the character count indicator, the encoded
-# payload, and extra padding.
+ALPHANUMERIC_CHARS: Set[str] = set("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-.,/: ")
 
 
 class ModeInidicators(Enum):
@@ -16,13 +12,6 @@ class ModeInidicators(Enum):
     ALPHANUMERIC: str = "0010"
     BYTE: str = "0100"
     KANJI: str = "1000"
-
-
-# HELLO WORLD is 11 characters long, the QR code is Version 2, and we are using alphanumeric encoding mode.
-# Therefore, the character count indicator is the value 11 encoded using 9 bits, or 000001011.
-class ModeIndicatorSize(Enum):
-    NUMERIC = 10
-    ALPHANUMERIC = 9
 
 
 class InvalidAlphanumericCharacter(Exception):
@@ -100,26 +89,21 @@ class AlphanumericPair:
 
 
 class DataEncoder:
+    """
+    DataEncoder is a class that provides methods for encoding text into a string formatted according to the QR code
+    standard.
+    """
+
     @classmethod
     def encode(cls, text: str, version: int, ecc: str) -> str:
         # infer the encoding mode and get the respective indicator string and bit chunks
         encoding_mode = cls.get_encoding_mode(text)
-        encoding_chunks = []
-        encoded_string = ""
-        match encoding_mode:
-            case Mode.NUMERIC:
-                encoded_string = ModeInidicators.NUMERIC.value
-                encoding_chunks = cls._encode_numeric(text)
-            case Mode.ALPHANUMERIC:
-                encoded_string = ModeInidicators.ALPHANUMERIC.value
-                encoding_chunks = cls._encode_alphanumeric_pairs(text)
-            case Mode.BYTE:
-                encoded_string = ModeInidicators.BYTE.value
-                encoding_chunks = cls._encode_bytes(text)
+        indicator, chunks = cls._get_indicator_and_encoded_chunks(encoding_mode, text)
+        encoded_string = indicator
 
         # set mode indicator and character length
         encoded_string += cls.get_character_count_indicator(text, ecc, encoding_mode)
-        encoded_string += "".join(encoding_chunks)
+        encoded_string += "".join(chunks)
 
         # terminator zeros (up to 4 zeros if padding is required)
         terminator_zeros = cls.pad_terminator_zeros(encoded_string)
@@ -137,6 +121,22 @@ class DataEncoder:
         encoded_string = cls.pad_remaining_bytes(encoded_string, required_length)
 
         return encoded_string
+
+    @classmethod
+    def _get_indicator_and_encoded_chunks(cls, encoding_mode: Mode, text: str):
+        encoding_chunks = []
+        encoded_string = ""
+        match encoding_mode:
+            case Mode.NUMERIC:
+                encoded_string = ModeInidicators.NUMERIC.value
+                encoding_chunks = cls._encode_numeric(text)
+            case Mode.ALPHANUMERIC:
+                encoded_string = ModeInidicators.ALPHANUMERIC.value
+                encoding_chunks = cls._encode_alphanumeric_pairs(text)
+            case Mode.BYTE:
+                encoded_string = ModeInidicators.BYTE.value
+                encoding_chunks = cls._encode_bytes(text)
+        return encoded_string, encoding_chunks
 
     @staticmethod
     def get_encoding_mode(text: str) -> Mode:

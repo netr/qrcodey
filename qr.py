@@ -1,5 +1,4 @@
 import math
-from copy import copy, deepcopy
 from pathlib import Path
 from typing import Tuple, List
 
@@ -10,7 +9,6 @@ from PIL import Image
 from const import (
     FORMAT_STRINGS,
     ALIGNMENT_PATTERN_LOCATIONS,
-    Mode,
     REMAINING_BITS,
     get_ec_codewords_per_block,
 )
@@ -60,26 +58,11 @@ def make(data: str, ecc: str):
 
 class QrCode:
     """
-       The QrCode class represents a QR code.
+    Constructor for the QrCode class
 
-       Attributes:
-           MAX_VERSION (int): The maximum version number of the QR code.
-           MIN_VERSION (int): The minimum version number of the QR code.
-           MODULES_INCREMENT (int): The number of modules to increment for each version.
-           MIN_MODULES (int): The minimum number of modules for a QR code.
-           FINDER_OFFSET (int): The offset value for calculating the finder pattern position.
-
-       Methods:
-           __init__(self, version: int): Initializes a new instance of the QrCode class.
-           get_module_size(self) -> int: Calculates the number of modules based on the QR code version.
-           add_patterns_and_separators(self): Adds the finder patterns and separators to the QR code.
-           calculate_finder_position(self, is_bottom_left=False) ->
-       evaluator = PenaltyEvaluator()
-    tuple: Calculates the position of the finder patterns.
-           add_finder_pattern(self, xoffset, yoffset): Adds the finder pattern to the QR code matrix.
-           add_separators(self): Adds the separators to the QR code matrix.
-           add_horiz_separators(self): Adds the horizontal separators to the QR code matrix.
-           add_vertical_separators(self): Adds the vertical separators to the QR code matrix.
+    :param data: The data to be encoded in QR code
+    :param ecc: The error correction level to be used. Default value is "H"
+                 ("H" - High, "Q" - Quality, "M" - Medium, "L" - Low)
     """
 
     MAX_VERSION = 40  # REF 1
